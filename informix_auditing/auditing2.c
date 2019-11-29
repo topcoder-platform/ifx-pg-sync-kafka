@@ -36,7 +36,7 @@
 
 typedef struct chains {
   mi_integer seq;
-  mi_string *xml;
+  mi_string *json;
   struct chains *next;
 } chains_t;
 
@@ -120,8 +120,8 @@ void do_auditing2(MI_FPARAM *fp)
 	  break;
   }
   /* Write the record in the allocated block */
-  curChain->xml = mi_dalloc(strlen(pdata) + 1, PER_SESSION);
-  strcpy(curChain->xml, pdata);
+  curChain->json = mi_dalloc(strlen(pdata) + 1, PER_SESSION);
+  strcpy(curChain->json, pdata);
 
   /* Prep a session-duration memory block and copy all the info */
   /* register the callback */
@@ -172,16 +172,17 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
 			if (pcur == NULL) {
 DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
             } else {
-			  sprintf(buffer, "%s%d_%d.xml", LOGGERFILEPREFIX,
+			  sprintf(buffer, "%s%d_%d.json", LOGGERFILEPREFIX,
 					pmem->sessionId, pcur->seq);
 DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
 			  fd = mi_file_open(buffer, O_WRONLY | O_APPEND | O_CREAT, 0644);
-			  if (pcur->xml == NULL) {
-DPRINTF("logger", 80, ("cbfunc(): pcur->xml is null"));
+			  if (pcur->json == NULL) {
+DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
               } else {
-			  ret = mi_file_write(fd, pcur->xml, strlen(pcur->xml));
+			  ret = mi_file_write(fd, pcur->json, strlen(pcur->json));
+        int res=posttopic(pcur->json);
 			  mi_file_close(fd);
-			  mi_free(pcur->xml);
+			  mi_free(pcur->json);
 			  }
 			  mi_free(pcur);
 			}
@@ -197,11 +198,11 @@ DPRINTF("logger", 80, ("cbfunc(): pcur->xml is null"));
 		  for (p = pmem->operations; p != NULL;) {
 			if (p->next != NULL) {
 			  ptmp = p->next->next;
-			  mi_free((void *)p->next->xml);
+			  mi_free((void *)p->next->json);
 			  mi_free((void *)p->next);
 			  p->next = ptmp;
 			} else {
-			  mi_free((void *)p->xml);
+			  mi_free((void *)p->json);
 			  mi_free((void *)p);
 			  p = 0;
 			}

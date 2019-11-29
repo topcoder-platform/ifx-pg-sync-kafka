@@ -25,8 +25,34 @@
 --                                                                    */
 -- ********************************************************************/
 
--- DROP FUNCTION set_tracing(lvarchar, integer, lvarchar);
--- DELETE FROM systraceclasses WHERE name = "logger";
-DROP PROCEDURE do_auditing3();
-DROP PROCEDURE writeFile(lvarchar, lvarchar);
-EXECUTE PROCEDURE remove_jar("audit_jar");
+EXECUTE FUNCTION set_tracing("logger", 99, "/tmp/logging.out");
+{
+-- Example of SELECT trigger
+CREATE TRIGGER custseltrig SELECT OF name ON test 
+REFERENCING OLD AS pre
+FOR EACH ROW (INSERT INTO auditTable VALUES(0, USER, pre.lname));
+}
+
+CREATE TRIGGER custinstrig INSERT ON test 
+FOR EACH ROW (EXECUTE PROCEDURE do_auditing1() );
+
+CREATE TRIGGER custupdtrig UPDATE ON test 
+FOR EACH ROW (EXECUTE PROCEDURE do_auditing1() );
+
+CREATE TRIGGER custdeltrig DELETE ON test 
+FOR EACH ROW (EXECUTE PROCEDURE do_auditing1() );
+
+INSERT INTO test  
+VALUES (0, 'name', 'Very long text 1234567890123456789012345678901234567890-----------01234567890',
+        'Long lvarchar 111111222222223333344444455556666777778888899990',
+	5, 10.03,  FILETOBLOB("/tmp/test.log", "server"), FILETOCLOB("/tmp/test.log", "server"));
+
+SELECT * FROM test WHERE name = 'name';
+
+UPDATE test set intcol = 3 WHERE name = 'name';
+
+DELETE FROM test where name = 'name'; 
+
+DROP TRIGGER custinstrig;
+DROP TRIGGER custupdtrig;
+DROP TRIGGER custdeltrig;

@@ -35,14 +35,22 @@
 #include <miami.h>
 #include <fcntl.h>
 
+#include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
+#include <stdio.h>
+#include <curl/curl.h>
+
 #define BUFSIZE 29900
 
 void fixname(mi_string *in);
-mi_string *do_cast(MI_CONNECTION *conn, MI_DATUM *datum,
-                   MI_TYPEID *tid, MI_TYPEID *lvar_id);
+mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
+                   MI_TYPEID *tid, MI_TYPEID *lvar_id, mi_integer collen);
 mi_string *doSelectCN();
 mi_string *doInsertCN();
 mi_string *doDeleteCN();
 mi_string *doUpdateCN();
 mi_integer set_tracing(mi_lvarchar *class, mi_integer lvl,
                        mi_lvarchar *tfile, MI_FPARAM *fparam);
+char* gettimestamp();
+int posttopic(char *jsondata);                       

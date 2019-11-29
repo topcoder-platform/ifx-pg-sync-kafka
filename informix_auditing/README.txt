@@ -59,3 +59,5 @@ the definition of -DMITRACE_OFF=1 from the compilation.
 
 If you are trying this code on a Unix platform, uncomment and modify line 32 of
 the Unix.mak file: uncomment and use your platform-specific include file.
+
+onspaces -c -S sbsp4 -p /tmp/rawdev1 -o 500 -s 20480 -m /tmp/rawdev2 500 -Ms 150 -Mo 200 -Df "AVG_LO_SIZE=32"

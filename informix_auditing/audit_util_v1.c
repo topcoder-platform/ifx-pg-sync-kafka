@@ -59,16 +59,7 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
   MI_TYPE_DESC 	*tdesc;
   mi_integer	precision;
   
- /* -------------------------------------------- */
-
-    /* Decide SRC-TYPE from tid */
-    MI_TYPE_DESC* dsc = mi_type_typedesc(conn, tid);
-    mi_string* srcType = mi_type_typename(dsc);
-    DPRINTF("logger",95,("-- typeName=%s --",srcType));
-    if ((strcmp("blob",   srcType) == 0) || (strcmp("clob",   srcType) == 0) || (strcmp("text",   srcType) == 0) || (strcmp("byte",   srcType) == 0)) {
-            return("unsupportedtype");
-     }
-   else{ 
+  
   fn = mi_cast_get(conn, tid, lvar_id,  &status);
   if (NULL == fn) {
     switch(status) {
@@ -99,8 +90,6 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
   pbuf = mi_lvarchar_to_string(new_datum);
   mi_routine_end(conn, fn); 
 	//return mi_type_typename(mi_type_typedesc(conn, my_type_id));
-  }
-	
   return(pbuf);
 }
 /*--------------------------------------------------------------*/
@@ -114,9 +103,9 @@ mi_string *doInsertCN()
   MI_DATUM      datum;
   mi_lvarchar   *lvarret;
   mi_integer    i, len, posi, colCount, collen;
-  mi_string     tabname[128], *buffer, *ptabname, *pcolname, *pcast, *pdbname;
+  mi_string     tabname[128], *buffer, *ptabname, *pcolname, *pcast;
   mi_integer	nc;
-  char uniquedatatype[10];
+
   nc = 0;
   conn = mi_get_session_connection();
   /* Get the table name and the row */
@@ -132,16 +121,8 @@ mi_string *doInsertCN()
   strcpy(tabname, ptabname);
   char *cdatetime = gettimestamp();
   sprintf(buffer, "{\"TIME\": \"%s\", ", cdatetime);
-  pdbname = mi_trigger_tabname(MI_TRIGGER_CURRENTTABLE | MI_TRIGGER_DBASENAME);
   posi = strlen(buffer);
-  //fixname(pdbname);
-  sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);     
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", tabname);
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"OPERATION\": \"INSERT\", ");       
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"DATA\":  {");
+  sprintf(&buffer[posi], "\"%s\": { \"INSERT\" : {", tabname);
   /* Process each column */
   for (i = 0; i < colCount; i++) {
     /* get column name and type id */
@@ -161,10 +142,6 @@ DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
 	   posi = strlen(buffer);
 	 }	
          sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, pcast);
-          if (strcmp("unsupportedtype",   pcast) == 0)  {
-            strcpy(uniquedatatype, "true");
-          }  
-
 	 nc = 1;
          break;
     case MI_ROW_VALUE:
@@ -173,11 +150,7 @@ DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
   } /* end for */
   /* close the record */
   posi = strlen(buffer);
-  if (strcmp("true",   uniquedatatype) == 0)  {
-      sprintf(&buffer[posi], "},  \n \"uniquedatatype\" : \"true\" \n }");
-  } else {
-      sprintf(&buffer[posi], "},  \n \"uniquedatatype\" : \"false\" \n }");
-  }
+  sprintf(&buffer[posi], "} } }");
   free(cdatetime);
  return(buffer);
 }
@@ -192,7 +165,7 @@ mi_string *doSelectCN()
   MI_DATUM      datum;
   mi_lvarchar   *lvarret;
   mi_integer    i, len, posi, colCount, collen;
-  mi_string     tabname[128], *buffer, *ptabname, *pcolname, *pcast, *pdbname;
+  mi_string     tabname[128], *buffer, *ptabname, *pcolname, *pcast;
   mi_integer	nc;
 	
   nc = 0;
@@ -210,16 +183,8 @@ mi_string *doSelectCN()
   strcpy(tabname, ptabname);
   char *cdatetime = gettimestamp();
   sprintf(buffer, "{\"TIME\": \"%s\", ", cdatetime);
-  pdbname = mi_trigger_tabname(MI_TRIGGER_CURRENTTABLE | MI_TRIGGER_DBASENAME);
   posi = strlen(buffer);
-  //fixname(pdbname);
-  sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);  
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", tabname);  
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"OPERATION\": \"SELECT\", ");       
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"DATA\":  {");     
+  sprintf(&buffer[posi], "\"%s\": { \"SELECT\" : {", tabname);
   /* Process each column */
   for (i = 0; i < colCount; i++) {
     /* get column name and type id */
@@ -247,7 +212,7 @@ DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
   } /* end for */
   /* close the record */
   posi = strlen(buffer);
-  sprintf(&buffer[posi], "} }");
+  sprintf(&buffer[posi], "} } }");
   free(cdatetime);
  return(buffer);
 }
@@ -262,9 +227,8 @@ mi_string *doDeleteCN()
   MI_DATUM      datum;
   mi_lvarchar   *lvarret;
   mi_integer    i, len, posi, colCount, collen;
-  mi_string     *buffer, *ptabname, *pcolname, *pcast, *pdbname;
+  mi_string     *buffer, *ptabname, *pcolname, *pcast;
   mi_integer	nc;
-   char uniquedatatype[10];
 
   nc = 0;
   conn = mi_get_session_connection();
@@ -282,16 +246,8 @@ mi_string *doDeleteCN()
   buffer = (mi_string *)mi_alloc(BUFSIZE);
   char *cdatetime = gettimestamp();
   sprintf(buffer, "{\"TIME\": \"%s\", ", cdatetime);
-  pdbname = mi_trigger_tabname(MI_TRIGGER_CURRENTTABLE | MI_TRIGGER_DBASENAME);
   posi = strlen(buffer);
-  //fixname(pdbname);
-  sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);   
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", ptabname);  
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"OPERATION\": \"DELETE\", ");       
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"DATA\":  {");         
+  sprintf(&buffer[posi], "\"%s\": { \"DELETE\" : {", ptabname);
   /* Process each column */
   for (i = 0; i < colCount; i++) {
     /* get column name and type id */
@@ -311,9 +267,6 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
            posi = strlen(buffer);
          }
          sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, pcast);
-          if (strcmp("unsupportedtype",   pcast) == 0)  {
-            strcpy(uniquedatatype, "true");
-          }
 	 nc = 1;
          break;
     case MI_ROW_VALUE:
@@ -323,12 +276,7 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
   /* close the record */
   posi = strlen(buffer);
   fixname(ptabname);
-  //sprintf(&buffer[posi], "}  }");
-    if (strcmp("true",   uniquedatatype) == 0)  {
-      sprintf(&buffer[posi], "},  \n \"uniquedatatype\" : \"true\" \n }");
-  } else {
-      sprintf(&buffer[posi], "},  \n \"uniquedatatype\" : \"false\" \n }");
-  }
+  sprintf(&buffer[posi], "} } }");
  free(cdatetime); 
  return(buffer);
 }
@@ -343,10 +291,9 @@ mi_string *doUpdateCN()
   MI_DATUM      datum;
   mi_lvarchar   *lvarret;
   mi_integer    i, j, len, posi, colCountOld, colCountNew, collen;
-  mi_string     *buffer, *ptabname, *poldcolname, *pnewcolname, *pcast, *pcast2, *pdbname;
+  mi_string     *buffer, *ptabname, *poldcolname, *pnewcolname, *pcast, *pcast2;
   mi_integer    pbufLen;
   mi_integer	nc;
- char uniquedatatype[10];
 
   nc = 0;
   DPRINTF("logger", 90, ("Entering doUpdateCN()"));
@@ -375,16 +322,8 @@ mi_string *doUpdateCN()
   buffer = (mi_string *)mi_alloc(BUFSIZE);
   char *cdatetime = gettimestamp();
   sprintf(buffer, "{\"TIME\": \"%s\", ", cdatetime);
-  pdbname = mi_trigger_tabname(MI_TRIGGER_CURRENTTABLE | MI_TRIGGER_DBASENAME);
   posi = strlen(buffer);
-  //fixname(pdbname);
-  sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);  
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", ptabname);    
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"OPERATION\": \"UPDATE\", ");       
-  posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"DATA\":  {");        
+  sprintf(&buffer[posi], "\"%s\": { \"UPDATE\" : {", ptabname); 
 
   /* Process each column */
   j = 0;
@@ -423,20 +362,12 @@ mi_string *doUpdateCN()
       pbufLen = strlen(buffer);
     }
     sprintf(&buffer[pbufLen], "\"%s\" : { \"old\" : \"%s\", \"new\" : \"%s\" }", poldcolname, pcast, pcast2);
-    if (strcmp("unsupportedtype",   pcast2) == 0)  {
-            strcpy(uniquedatatype, "true");
-      }
-     nc = 1;
+    nc = 1;
 
     pbufLen = strlen(buffer);
   } /* end for */
   pbufLen = strlen(buffer);
-  //sprintf(&buffer[pbufLen], "}  }");
-    if (strcmp("true",   uniquedatatype) == 0)  {
-      sprintf(&buffer[pbufLen], "},  \n \"uniquedatatype\" : \"true\" \n }");
-      } else {
-      sprintf(&buffer[pbufLen], "},  \n \"uniquedatatype\" : \"false\" \n }");
-  }
+  sprintf(&buffer[pbufLen], "} } }");
   DPRINTF("logger", 90, ("Exiting doUpdateCN()"));
   free(cdatetime);
   return(buffer);
@@ -487,6 +418,7 @@ char* gettimestamp()
 
 int posttopic(char *jsondata)
 {
+
    char *postinfo = getenv("POSTTOPIC");
    char *localurl= "http://host.docker.internal:8080/events";
    //char *localurl= "http://localhost:8080/events";
@@ -524,7 +456,8 @@ int posttopic(char *jsondata)
                     CURLcode ret = curl_easy_perform(hnd);
                     if(ret != CURLE_OK)
                         fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                                curl_easy_strerror(ret));  
+                                curl_easy_strerror(ret));                      
+
     return 0;
 }
 
