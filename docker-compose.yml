@@ -1,0 +1,57 @@
+version: '3.1'
+
+services:
+
+  pgdb:
+    image: postgres
+    restart: always
+    ports:
+        - "54321:5432"
+    environment:
+      POSTGRES_DB: auditlog
+      POSTGRES_PASSWORD: password
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8082:8080
+
+  kafka:
+    image: kafka-ifxpg-local:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-kaf
+    ports:
+      - "9092:9092"
+
+  producer:
+    image: node-ifxpg:latest
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    command: run producer
+    depends_on:
+      - "kafka"  
+
+  producerwithoutkafka:
+    image: node-ifxpg:latest
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    command: run producerwithoutkafka
+
+
+  consumer:
+    image: node-ifxpg:latest
+    build:
+      context: .
+    command: run consumer
+    depends_on:
+      - "kafka"
+      - "pgdb" 
+
+
+
