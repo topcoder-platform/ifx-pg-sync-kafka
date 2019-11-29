@@ -37,10 +37,10 @@ ENV LICENSE accept
 RUN rm /usr/bin/python && ln -s /usr/bin/python2.7 /usr/bin/python
 RUN echo "sqlexec 2021/tcp" >> /etc/services
 
-RUN mkdir /app
-COPY . /app
+RUN mkdir /ifxpg-nodeserver
+COPY . /ifxpg-nodeserver
 
-WORKDIR /app
+WORKDIR /ifxpg-nodeserver
 RUN rm -rf node_modules && npm install --unsafe-perm
 
 # ENTRYPOINT [ "/bin/bash" ]
