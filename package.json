@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "producer": "node src/nodeserver.js",
     "consumer": "node src/consumer.js",
-    "producerwithoutkafka" : "node node-server-without-kafka.js"
+    "producerwithoutkafka" : "node src/node-server-without-kafka.js"
   },
   "author": "",
   "license": "ISC",
@@ -26,7 +26,8 @@
     "sequelize": "^5.19.0",
     "underscore": "^1.9.1",
     "winston": "^3.1.0",
-    "is-utf8": "^0.2.1"
+    "is-utf8": "^0.2.1",
+    "aws-sdk": "latest"
   },
   "devDependencies": {
     "chai": "^4.2.0",

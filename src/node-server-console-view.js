@@ -1,5 +1,4 @@
 const express = require('express')
-//const Kafka = require('no-kafka')
 const bodyParser = require('body-parser')
 
 const app = express()
@@ -12,7 +11,7 @@ app.get('/', function (req, res) {
   res.send('hello world')
 })
 
-app.post('/events', function (req, res) {
+app.post('/fileevents', function (req, res) {
   const payload = req.body
   // const topic = payload.topic
   const topic = 'test-topic';

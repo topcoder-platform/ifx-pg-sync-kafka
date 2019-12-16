@@ -41,5 +41,9 @@ module.exports = {
     USER: process.env.IFX_USER || 'informix',
     PASSWORD: process.env.IFX_PASSWORD || '1nf0rm1x',
     POOL_MAX_SIZE: parseInt(process.env.IFX_POOL_MAX_SIZE || '10')
+  },
+  DYNAMODB: {
+    REGION: process.env.AWS_REGION || 'us-east-1',
+    TABLENAME: process.env.DYNAMODB_TABLENAME || 'ifxpg-migrator'
   }  
 }

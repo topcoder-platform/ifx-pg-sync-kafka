@@ -488,7 +488,9 @@ char* gettimestamp()
 int posttopic(char *jsondata)
 {
    char *postinfo = getenv("POSTTOPIC");
-   char *localurl= "http://host.docker.internal:8080/events";
+   char *fileeventsurl = "http://ifxpg-migrator.topcoder-dev.com/fileevents"
+   char *kafkaeventsurl = "http://ifxpg-migrator.topcoder-dev.com/kafkaevents"
+   //char *localurl= "http://host.docker.internal:8080/events";
    //char *localurl= "http://localhost:8080/events";
    char *posturl = getenv("POSTURL");
    if (!postinfo)
@@ -507,7 +509,8 @@ int posttopic(char *jsondata)
                 printf("posting topic");
                  if (!posturl)
                     {
-                        posturl = localurl;
+                         posturl = fileeventsurl;
+                        //posturl = localurl;
                         //printf("PATH : %s\n",ap);
                         printf("no url provide in environment . So it is taking localurl");
                     }
@@ -518,13 +521,19 @@ int posttopic(char *jsondata)
                     headers = curl_slist_append(headers, "cache-control: no-cache");
                     headers = curl_slist_append(headers, "Content-Type: application/json");
                     curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
-
                     curl_easy_setopt(hnd, CURLOPT_POSTFIELDS,jsondata);
-
                     CURLcode ret = curl_easy_perform(hnd);
                     if(ret != CURLE_OK)
+                       {
                         fprintf(stderr, "curl_easy_perform() failed: %s\n",
                                 curl_easy_strerror(ret));  
+                       }
+                    curl_easy_setopt(hnd, CURLOPT_URL, kafkaeventsurl);
+                    if(ret != CURLE_OK)
+                       {
+                        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                                curl_easy_strerror(ret));  
+                       }                    
     return 0;
 }
 

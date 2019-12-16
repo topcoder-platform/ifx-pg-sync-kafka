@@ -15,7 +15,7 @@ app.get('/', function (req, res) {
 })
 
 
-app.post('/events', async (req, res, next) => {
+app.post('/kafkaevents', async (req, res, next) => {
   const payload = req.body
   let seqID = 0
 
