@@ -2,6 +2,7 @@ const config = require('config')
 const logger = require('../common/logger')
 const _ = require('lodash')
 var AWS = require("aws-sdk");
+const config = require('config');
 async function pushToDynamoDb(payload) {
   try { console.log('----Inside DynomoDB code -------');
          // console.log(payload)
