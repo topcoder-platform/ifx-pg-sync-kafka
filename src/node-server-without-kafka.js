@@ -1,6 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const {pushToDynamoDb} = require('./api/migratedynamodb')
+const config = require('config');
 
 const app = express()
 const port = process.env.PORT || 8080;
