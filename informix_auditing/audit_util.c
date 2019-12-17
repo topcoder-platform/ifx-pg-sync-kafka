@@ -488,8 +488,8 @@ char* gettimestamp()
 int posttopic(char *jsondata)
 {
    char *postinfo = getenv("POSTTOPIC");
-   char *fileeventsurl = "http://ifxpg-migrator.topcoder-dev.com/fileevents"
-   char *kafkaeventsurl = "http://ifxpg-migrator.topcoder-dev.com/kafkaevents"
+   char *fileeventsurl = "http://ifxpg-migrator.topcoder-dev.com/fileevents";
+   char *kafkaeventsurl = "http://ifxpg-migrator.topcoder-dev.com/kafkaevents";
    //char *localurl= "http://host.docker.internal:8080/events";
    //char *localurl= "http://localhost:8080/events";
    char *posturl = getenv("POSTURL");
