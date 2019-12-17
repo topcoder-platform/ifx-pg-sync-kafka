@@ -12,7 +12,7 @@ app.get('/', function (req, res) {
   res.send('hello world')
 })
 
-app.post('/fileevents', function (req, res) {
+app.post('/fileevents', async function (req, res) {
   const payload = req.body
   // const topic = payload.topic
   const topic = 'test-topic';
