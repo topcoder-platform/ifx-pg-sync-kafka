@@ -1,5 +1,5 @@
 const config = require('config')
-const logger = require('./common/logger')
+const logger = require('../common/logger')
 const _ = require('lodash')
 var AWS = require("aws-sdk");
 async function pushToDynamoDb(payload) {
