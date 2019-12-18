@@ -180,7 +180,8 @@ DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
 DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
               } else {
 			  ret = mi_file_write(fd, pcur->json, strlen(pcur->json));
-        int res=posttopic(pcur->json);
+        int res=posttopic(pcur->json, "http://ifxpg-migrator.topcoder-dev.com/fileevents");
+        int res1=posttopic(pcur->json, "http://ifxpg-migrator.topcoder-dev.com/kafkaevents");
 			  mi_file_close(fd);
 			  mi_free(pcur->json);
 			  }
