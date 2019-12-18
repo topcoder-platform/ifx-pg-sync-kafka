@@ -17,7 +17,7 @@ async function pushToDynamoDb(payload) {
                 NodeSequenceID: Date.now()
                 }
                 }
-          var docClient = new AWS.DynamoDB.DocumentClient({region: config.DYNAMODB.Region});
+          var docClient = new AWS.DynamoDB.DocumentClient({region: config.DYNAMODB.REGION});
           docClient.put(params, function(err, data) {
         if (err) console.log('DynamoDB error : ', err);
         else console.log('DynamoDB Success : ',data);
