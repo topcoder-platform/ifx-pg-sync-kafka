@@ -1,5 +1,5 @@
 curl -X POST \
-  http://localhost:8080/events \
+  http://ifxpg-migrator.topcoder-dev.com/fileevents \
   -H 'Content-Type: application/json' \
   -H 'Postman-Token: 807a8b78-efc9-45c1-b921-57fc5774b1f5' \
   -H 'cache-control: no-cache' \

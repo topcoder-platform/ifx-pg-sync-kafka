@@ -1,6 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const {pushToDynamoDb} = require('./api/migratedynamodb')
+const pushToDynamoDb = require('./api/migratedynamodb')
 const config = require('config');
 
 const app = express()
