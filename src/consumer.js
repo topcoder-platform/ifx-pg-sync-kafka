@@ -125,7 +125,7 @@ const dataHandler = function (messageSet, topic, partition) {
 
       if (!payload.retryCount) {
         payload.retryCount = 0
-        logger.debug('setting retry counter to 0 and max try count is : ', config.KAFKA.maxRetry);
+        logger.debug('setting retry counter to 0 and max try count is : ', config.KAFKA_REPOST_COUNT);
       }
       if (payload.retryCount >= config.KAFKA_REPOST_COUNT) {
         logger.debug('Recached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
