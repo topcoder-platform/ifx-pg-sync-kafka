@@ -8,6 +8,7 @@ const dataHandler = function (messageSet, topic, partition) {
     return Promise.each(messageSet, async function (m) {
       const payload = JSON.parse(m.message.value)
       if(config.SLACK.SLACKNOTIFY === 'true') {
+        console.log(payload)
         postMessage(payload, (response) => {
             if (response.statusCode < 400) {
                 console.info('Message posted successfully');

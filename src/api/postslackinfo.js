@@ -38,7 +38,6 @@ function postMessage(message, callback) {
     postReq.end();
 }
 
-module.exports = {
-    postMessage
-  }
+module.exports = postMessage
+
   
