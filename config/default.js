@@ -45,5 +45,10 @@ module.exports = {
   DYNAMODB: {
     REGION: process.env.AWS_REGION || 'us-east-1',
     TABLENAME: process.env.DYNAMODB_TABLENAME || 'ifxpg-migrator'
-  }  
+  },
+  SLACK: {
+    URL: process.env.SLACKURL || 'us-east-1',
+    SLACKCHANNEL: process.env.SLACKCHANNEL || 'ifxpg-migrator',
+    SLACKNOTIFY:  process.env.SLACKNOTIFY || 'false'
+  }    
 }
