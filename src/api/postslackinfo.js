@@ -6,10 +6,15 @@ hookUrl = config.SLACK.URL
 slackChannel=config.SLACK.SLACKCHANNEL
 
 function postMessage(message, callback) {
+
     var slackMessage = {
         channel: `${slackChannel}`,
         text:  `${message}`,
     }    
+    console.log("stringfied slack message");
+    console.log(JSON.stringify(slackMessage))
+    console.log("slack message");
+    console.log(slackMessage)
     const body = JSON.stringify(slackMessage);
     const options = url.parse(hookUrl);
     options.method = 'POST';
