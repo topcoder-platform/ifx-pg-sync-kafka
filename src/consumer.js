@@ -104,6 +104,8 @@ const dataHandler = function (messageSet, topic, partition) {
       return consumer.commitOffset({ topic: topic, partition: partition, offset: m.offset, metadata: 'optional' })
       }
 
+//================      
+
       //audit failure log
       await cAuditLog({
         SEQ_ID: payload.SEQ_ID,
@@ -115,15 +117,46 @@ const dataHandler = function (messageSet, topic, partition) {
 
       let msgValue = {
         ...postgreErr,
-        recipients: config.topic_error.EMAIL
+        recipients: config.topic_error.EMAIL,
+        payloadposted: JSON.stringify(payload)
       }
-      //send postgres_error message
-      await producer.send({
-        topic: config.topic_error.NAME,
-        partition: config.topic_error.PARTITION,
-        message: {
-            value : JSON.stringify(msgValue),
-        }
+
+//===================================
+
+      if (!payload.retryCount) {
+        payload.retryCount = 0
+        logger.debug('setting retry counter to 0 and max try count is : ', config.KAFKA.maxRetry);
+      }
+      if (payload.retryCount >= config.KAFKA_REPOST_COUNT) {
+        logger.debug('Recached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
+        await producer.send({
+          topic: config.topic_error.NAME,
+          partition: config.topic_error.PARTITION,
+          message: {
+              value : JSON.stringify(msgValue),
+          }
+          },{
+            retries: {
+              attempts: config.RETRY_COUNTER,
+              delay: {
+                min: 100,
+                max: 300
+              }
+            }
+          }).then(function (result) {
+            console.log(result)
+        })
+      }
+      else
+      {
+         payload['retryCount'] = payload.retryCount + 1;
+
+         await producer.send({
+          topic: config.topic.NAME,
+          partition: config.topic.PARTITION,
+          message: {
+            value : JSON.stringify(payload)
+          }
         },{
           retries: {
             attempts: config.RETRY_COUNTER,
@@ -133,9 +166,19 @@ const dataHandler = function (messageSet, topic, partition) {
             }
           }
         }).then(function (result) {
-          console.log(result)
-      })
+            if(result[0].error)
+              kafka_error = result[0].error
 
+            console.log(kafka_error)  
+        })
+      
+ //await auditTrail([message.payload.payloadseqid,cs_processId,message.payload.table,message.payload.Uniquecolumn,
+   //       message.payload.operation,"Error",message.payload['retryCount'],err.message,"",message.payload.data, message.timestamp,message.topic],'consumer')
+     // await pushToKafka(message)      
+      }
+      //send postgres_error message
+
+//===============================================
       // commit offset
       return consumer.commitOffset({ topic: topic, partition: partition, offset: m.offset, metadata: 'optional' })
     }).catch(err => console.log(err))

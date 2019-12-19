@@ -8,6 +8,7 @@ module.exports = {
     PARTITION: 0
   },
   RETRY_COUNTER: 3,
+  KAFKA_REPOST_COUNT: 5,
   topic_error: {
     NAME: 'db.ifxpgmigrate.error',
     PARTITION: 0,
