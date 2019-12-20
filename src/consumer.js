@@ -1,7 +1,7 @@
 const Kafka = require('no-kafka');
 const Promise = require('bluebird');
 const config = require('config');
-
+const logger = require('./common/logger');
 const consumer = new Kafka.GroupConsumer();
 const { producerLog, pAuditLog } = require('./api/audit')
 const { consumerLog, cAuditLog } = require('./api/audit')
