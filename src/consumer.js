@@ -3,6 +3,7 @@ const Promise = require('bluebird');
 const config = require('config');
 
 const consumer = new Kafka.GroupConsumer();
+const { producerLog, pAuditLog } = require('./api/audit')
 const { consumerLog, cAuditLog } = require('./api/audit')
 //const { migrateDelete, migrateInsert, migrateUpdate } = require('./api/migrate')
 const { migratepgDelete, migratepgInsert, migratepgUpdate } = require('./api/migratepg')
@@ -151,6 +152,24 @@ const dataHandler = function (messageSet, topic, partition) {
       {
          payload['retryCount'] = payload.retryCount + 1;
 
+         let seqID = 0
+         //add producer_log
+         await producerLog({
+           TOPICNAME: config.topic.NAME,
+           SOURCE: config.SOURCE,
+           SCHEMA_NAME: payload.SCHEMANAME,
+           TABLE_NAME: payload.TABLENAME,
+           PRODUCER_PAYLOAD: payload.DATA,
+           OPERATION: payload.OPERATION
+         }).then((log) => seqID = log.SEQ_ID)
+       
+         if(!seqID){
+           console.log('ProducerLog Failure')
+           return
+         }
+         console.log('ProducerLog Success')
+         payload['SEQ_ID'] = seqID;
+         //SEQ_ID: seqID
          await producer.send({
           topic: config.topic.NAME,
           partition: config.topic.PARTITION,
@@ -171,6 +190,51 @@ const dataHandler = function (messageSet, topic, partition) {
 
             console.log(kafka_error)  
         })
+
+  //add auditlog
+  if(!kafka_error){
+    await pAuditLog({
+      SEQ_ID: seqID,
+      PRODUCER_PUBLISH_STATUS: 'success',
+      PRODUCER_PUBLISH_TIME: Date.now()
+    }).then((log) => console.log('Send Success'))
+    res.send('done')
+    return
+    }
+  
+    //add auditlog
+    await pAuditLog({
+      SEQ_ID: seqID,
+      PRODUCER_PUBLISH_STATUS: 'failure',
+      PRODUCER_FAILURE_LOG: kafka_error,
+      PRODUCER_PUBLISH_TIME: Date.now()
+    }).then((log) => console.log('Send Failure'))
+  
+    msgValue = {
+      ...kafka_error,
+      SEQ_ID: seqID,
+      recipients: config.topic_error.EMAIL,
+      msgoriginator: "consumer-producer"
+    }
+  
+    //send error message to kafka
+    await producer.send({
+      topic: config.topic_error.NAME,
+      partition: config.topic_error.PARTITION,
+      message: {
+        value : JSON.stringify(msgValue),
+      }
+      },{
+        retries: {
+          attempts: config.RETRY_COUNTER,
+          delay: {
+            min: 100,
+            max: 300
+          }
+        }
+      }).then(function (result) {
+        console.log(result)
+      })        
       
  //await auditTrail([message.payload.payloadseqid,cs_processId,message.payload.table,message.payload.Uniquecolumn,
    //       message.payload.operation,"Error",message.payload['retryCount'],err.message,"",message.payload.data, message.timestamp,message.topic],'consumer')
