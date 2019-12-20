@@ -3,14 +3,14 @@ const zlib = require('zlib');
 const url = require('url');
 const https = require('https');
 hookUrl = config.SLACK.URL
-slackChannel=config.SLACK.SLACKCHANNEL
+slackChannel = config.SLACK.SLACKCHANNEL
 
 function postMessage(message, callback) {
 
     var slackMessage = {
         channel: `${slackChannel}`,
-        text:  `${message}`,
-    }    
+        text: `${message}`,
+    }
     console.log("stringfied slack message");
     console.log(JSON.stringify(slackMessage))
     console.log("slack message");
@@ -44,5 +44,3 @@ function postMessage(message, callback) {
 }
 
 module.exports = postMessage
-
-  

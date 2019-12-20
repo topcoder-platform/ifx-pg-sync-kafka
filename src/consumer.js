@@ -46,21 +46,22 @@ const dataHandler = function (messageSet, topic, partition) {
     const payload = JSON.parse(m.message.value)
 
     // insert consumer_log
-    try
-    {
-    console.log("payload sequece ID : " + payload.SEQ_ID )
-    consumerLog({
-        SEQ_ID: payload.SEQ_ID,
-        TOPICNAME: topic,
-        SCHEMA_NAME: payload.SCHEMANAME,
-        CONSUMAER_QUERY: {
-          OPERATION: payload.OPERATION,
-          DATA: payload.DATA
-        },
-        DESTINATION: config.DESTINATION
-      }).then(log => console.log('Add Consumer Log'))
-      .catch(err => console.log(err))
-    } catch(error) {console.log(error)}
+    try {
+      console.log("payload sequece ID : " + payload.SEQ_ID)
+      consumerLog({
+          SEQ_ID: payload.SEQ_ID,
+          TOPICNAME: topic,
+          SCHEMA_NAME: payload.SCHEMANAME,
+          CONSUMAER_QUERY: {
+            OPERATION: payload.OPERATION,
+            DATA: payload.DATA
+          },
+          DESTINATION: config.DESTINATION
+        }).then(log => console.log('Add Consumer Log'))
+        .catch(err => console.log(err))
+    } catch (error) {
+      console.log(error)
+    }
     //update postgres table
     let postgreErr
     if (payload.uniquedatatype === 'true') {
@@ -138,9 +139,10 @@ const dataHandler = function (messageSet, topic, partition) {
       let msgValue = {
         ...postgreErr,
         recipients: config.topic_error.EMAIL,
-        payloadposted: JSON.stringify(payload)
+        payloadposted: JSON.stringify(payload),
+        msgoriginator: "consumer-producer"
       }
-/*
+
       if (!payload.retryCount) {
         payload.retryCount = 0
         logger.debug('setting retry counter to 0 and max try count is : ', config.KAFKA_REPOST_COUNT);
@@ -204,10 +206,10 @@ const dataHandler = function (messageSet, topic, partition) {
         }
       }
       //send postgres_error message
-*/
 
-  logger.debug('Recached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
-  kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
+
+      //  logger.debug('Recached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
+      //  kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
       //===============================================
       // commit offset
       return consumer.commitOffset({

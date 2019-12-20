@@ -3,11 +3,15 @@ require('express-async-errors');
 const Kafka = require('no-kafka')
 const config = require('config')
 const bodyParser = require('body-parser')
-const { producerLog, pAuditLog } = require('./api/audit')
+const {
+  producerLog,
+  pAuditLog
+} = require('./api/audit')
+const pushToKafka = require('./api/pushToKafka')
 
 const app = express()
-app.use(bodyParser.json());       // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+app.use(bodyParser.json()); // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
   extended: true
 }));
 app.get('/', function (req, res) {
@@ -29,7 +33,7 @@ app.post('/kafkaevents', async (req, res, next) => {
     OPERATION: payload.OPERATION
   }).then((log) => seqID = log.SEQ_ID)
 
-  if(!seqID){
+  if (!seqID) {
     console.log('ProducerLog Failure')
     return
   }
@@ -41,7 +45,8 @@ app.post('/kafkaevents', async (req, res, next) => {
     ...payload,
     SEQ_ID: seqID
   }
-
+  kafka_error = await pushToKafka(producer, config.topic.NAME, msgValue)
+  /*
   await producer.send({
     topic: config.topic.NAME,
     //partition: config.topic.PARTITION,
@@ -60,16 +65,16 @@ app.post('/kafkaevents', async (req, res, next) => {
       if(result[0].error)
         kafka_error = result[0].error
   })
-
+  */
   //add auditlog
-  if(!kafka_error){
-  await pAuditLog({
-    SEQ_ID: seqID,
-    PRODUCER_PUBLISH_STATUS: 'success',
-    PRODUCER_PUBLISH_TIME: Date.now()
-  }).then((log) => console.log('Send Success'))
-  res.send('done')
-  return
+  if (!kafka_error) {
+    await pAuditLog({
+      SEQ_ID: seqID,
+      PRODUCER_PUBLISH_STATUS: 'success',
+      PRODUCER_PUBLISH_TIME: Date.now()
+    }).then((log) => console.log('Send Success'))
+    res.send('done')
+    return
   }
 
   //add auditlog
@@ -83,11 +88,12 @@ app.post('/kafkaevents', async (req, res, next) => {
   msgValue = {
     ...kafka_error,
     SEQ_ID: seqID,
-    recipients: config.topic_error.EMAIL
+    recipients: config.topic_error.EMAIL,
+    msgoriginator: "producer"
   }
-
+  kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
   //send error message to kafka
-  await producer.send({
+  /* await producer.send({
     topic: config.topic_error.NAME,
    // partition: config.topic_error.PARTITION,
     message: {
@@ -104,8 +110,8 @@ app.post('/kafkaevents', async (req, res, next) => {
     }).then(function (result) {
       console.log(result)
     })
-
-    res.send('error')
+*/
+  res.send('error')
 
 })
 
@@ -113,11 +119,13 @@ app.post('/kafkaevents', async (req, res, next) => {
 const producer = new Kafka.Producer()
 
 producer.init().then(function () {
-  console.log('connected to local kafka server on port 9092 ...');
+    console.log('connected to local kafka server on port 9092 ...');
 
-  // start the server
-  app.listen(config.PORT);
-  console.log('Server started! At http://localhost:' + config.PORT);
+    // start the server
+    app.listen(config.PORT);
+    console.log('Server started! At http://localhost:' + config.PORT);
 
-} //end producer init
-).catch(e => { console.log('Error : ', e) });
+  } //end producer init
+).catch(e => {
+  console.log('Error : ', e)
+});
