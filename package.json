@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "producer": "node src/nodeserver.js",
-    "consumer": "node src/consumer.js",
+    "consumer": "nodemon src/consumer.js",
     "producerwithoutkafka" : "node src/node-server-without-kafka.js",
     "ifxpgnotify": "node src/consumer-slacknotify.js"
   },
@@ -31,7 +31,8 @@
     "aws-sdk": "latest",
     "zlib": "latest",
     "url": "latest",
-    "https": "latest"
+    "https": "latest",
+    "nodemon": "latest"
   },
   "devDependencies": {
     "chai": "^4.2.0",

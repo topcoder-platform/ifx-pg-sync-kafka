@@ -69,14 +69,14 @@ const dataHandler = function (messageSet, topic, partition) {
         await migrateifxinsertdata(payload, pool)
           .catch(err => {
             postgreErr = err
-            console.log(err)
+            //console.log(err)
           })
       }
       if (payload.OPERATION === 'UPDATE') {
         await migrateifxupdatedata(payload, pool)
           .catch(err => {
             postgreErr = err
-            console.log(err)
+            //console.log(err)
           })
       }
       console.log("Different approach")
@@ -86,14 +86,14 @@ const dataHandler = function (messageSet, topic, partition) {
         await migratepgInsert(pool, entity, payload.SCHEMANAME, payload.TABLENAME)
           .catch(err => {
             postgreErr = err
-            console.log(err)
+            //console.log(err)
           })
 
       } else if (payload.OPERATION === 'UPDATE') {
         await migratepgUpdate(pool, payload.DATA, payload.SCHEMANAME, payload.TABLENAME)
           .catch(err => {
             postgreErr = err
-            console.log(err)
+            //console.log(err)
           })
 
       } else if (payload.OPERATION === 'DELETE') {
@@ -101,7 +101,7 @@ const dataHandler = function (messageSet, topic, partition) {
         await migratepgDelete(pool, entity, payload.SCHEMANAME, payload.TABLENAME)
           .catch(err => {
             postgreErr = err
-            console.log(err)
+            //console.log(err)
           })
 
       }
