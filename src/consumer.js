@@ -198,7 +198,7 @@ const dataHandler = function (messageSet, topic, partition) {
       PRODUCER_PUBLISH_STATUS: 'success',
       PRODUCER_PUBLISH_TIME: Date.now()
     }).then((log) => console.log('Send Success'))
-    res.send('done')
+    //res.send('done')
     return
     }
   
