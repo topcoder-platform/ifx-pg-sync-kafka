@@ -199,7 +199,7 @@ const dataHandler = function (messageSet, topic, partition) {
       PRODUCER_PUBLISH_TIME: Date.now()
     }).then((log) => console.log('Send Success'))
     //res.send('done')
-    return
+    return consumer.commitOffset({ topic: topic, partition: partition, offset: m.offset, metadata: 'optional' })
     }
   
     //add auditlog
