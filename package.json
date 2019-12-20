@@ -32,7 +32,8 @@
     "zlib": "latest",
     "url": "latest",
     "https": "latest",
-    "nodemon": "latest"
+    "nodemon": "latest",
+    "topcoder-healthcheck-dropin": "^1.0.3"
   },
   "devDependencies": {
     "chai": "^4.2.0",

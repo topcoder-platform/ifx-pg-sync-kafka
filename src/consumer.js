@@ -2,6 +2,7 @@ const Kafka = require('no-kafka');
 const Promise = require('bluebird');
 const config = require('config');
 const logger = require('./common/logger');
+const healthcheck = require('topcoder-healthcheck-dropin');
 const consumer = new Kafka.GroupConsumer();
 const {
   producerLog,
@@ -42,7 +43,7 @@ pool.on('remove', client => {
 })
 console.log('---------------------------------');
 
-const dataHandler = function (messageSet, topic, partition) {
+async function dataHandler(messageSet, topic, partition) {
   return Promise.each(messageSet, async function (m) {
     const payload = JSON.parse(m.message.value)
 
@@ -256,9 +257,39 @@ const dataHandler = function (messageSet, topic, partition) {
 
 };
 
-const strategies = [{
-  subscriptions: [config.topic.NAME],
-  handler: dataHandler
-}];
+const check = function () {
+  if (!consumer.client.initialBrokers && !consumer.client.initialBrokers.length) {
+    return false;
+  }
+  let connected = true;
+  consumer.client.initialBrokers.forEach(conn => {
+    logger.debug(`url ${conn.server()} - connected=${conn.connected}`);
+    connected = conn.connected & connected;
+  });
+  return connected;
+};
 
-consumer.init(strategies);
+
+
+/**
+ * Initialize kafka consumer
+ */
+async function setupKafkaConsumer() {
+  try {
+    const strategies = [{
+      subscriptions: [config.topic.NAME],
+      handler: dataHandler
+    }];
+    
+    await consumer.init(strategies);
+	  
+    logger.info('Initialized kafka consumer')
+    healthcheck.init([check])
+  } catch (err) {
+    logger.error('Could not setup kafka consumer')
+    logger.logFullError(err)
+    terminate()
+  }
+}
+
+setupKafkaConsumer()
