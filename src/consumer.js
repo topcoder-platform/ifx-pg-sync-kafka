@@ -140,7 +140,7 @@ const dataHandler = function (messageSet, topic, partition) {
         recipients: config.topic_error.EMAIL,
         payloadposted: JSON.stringify(payload)
       }
-
+/*
       if (!payload.retryCount) {
         payload.retryCount = 0
         logger.debug('setting retry counter to 0 and max try count is : ', config.KAFKA_REPOST_COUNT);
@@ -204,7 +204,10 @@ const dataHandler = function (messageSet, topic, partition) {
         }
       }
       //send postgres_error message
+*/
 
+  logger.debug('Recached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
+  kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
       //===============================================
       // commit offset
       return consumer.commitOffset({
