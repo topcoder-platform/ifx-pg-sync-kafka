@@ -44,7 +44,7 @@ app.post('/kafkaevents', async (req, res, next) => {
 
   await producer.send({
     topic: config.topic.NAME,
-    partition: config.topic.PARTITION,
+    //partition: config.topic.PARTITION,
     message: {
       value : JSON.stringify(msgValue)
     }
@@ -89,7 +89,7 @@ app.post('/kafkaevents', async (req, res, next) => {
   //send error message to kafka
   await producer.send({
     topic: config.topic_error.NAME,
-    partition: config.topic_error.PARTITION,
+   // partition: config.topic_error.PARTITION,
     message: {
       value : JSON.stringify(msgValue),
     }

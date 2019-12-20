@@ -9,7 +9,7 @@ async function pushToKafka(producer, topicname, payload) {
     let kafka_error     
     await producer.send({
         topic: topicname,
-        partition: config.topic.PARTITION,
+       // partition: config.topic.PARTITION,
         message: {
           value : JSON.stringify(payload)
         }

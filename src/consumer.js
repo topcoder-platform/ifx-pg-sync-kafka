@@ -46,6 +46,9 @@ const dataHandler = function (messageSet, topic, partition) {
     const payload = JSON.parse(m.message.value)
 
     // insert consumer_log
+    try
+    {
+    console.log("payload sequece ID : " + payload.SEQ_ID )
     consumerLog({
         SEQ_ID: payload.SEQ_ID,
         TOPICNAME: topic,
@@ -57,7 +60,7 @@ const dataHandler = function (messageSet, topic, partition) {
         DESTINATION: config.DESTINATION
       }).then(log => console.log('Add Consumer Log'))
       .catch(err => console.log(err))
-
+    } catch(error) {console.log(error)}
     //update postgres table
     let postgreErr
     if (payload.uniquedatatype === 'true') {
