@@ -8,6 +8,7 @@ const {
   pAuditLog
 } = require('./api/audit')
 const pushToKafka = require('./api/pushToKafka')
+const postMessage = require('./api/postslackinfo')
 
 const app = express()
 app.use(bodyParser.json()); // to support JSON-encoded bodies
@@ -46,26 +47,6 @@ app.post('/kafkaevents', async (req, res, next) => {
     SEQ_ID: seqID
   }
   kafka_error = await pushToKafka(producer, config.topic.NAME, msgValue)
-  /*
-  await producer.send({
-    topic: config.topic.NAME,
-    //partition: config.topic.PARTITION,
-    message: {
-      value : JSON.stringify(msgValue)
-    }
-  },{
-    retries: {
-      attempts: config.RETRY_COUNTER,
-      delay: {
-        min: 100,
-        max: 300
-      }
-    }
-  }).then(function (result) {
-      if(result[0].error)
-        kafka_error = result[0].error
-  })
-  */
   //add auditlog
   if (!kafka_error) {
     await pAuditLog({
@@ -91,26 +72,24 @@ app.post('/kafkaevents', async (req, res, next) => {
     recipients: config.topic_error.EMAIL,
     msgoriginator: "producer"
   }
-  kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
   //send error message to kafka
-  /* await producer.send({
-    topic: config.topic_error.NAME,
-   // partition: config.topic_error.PARTITION,
-    message: {
-      value : JSON.stringify(msgValue),
-    }
-    },{
-      retries: {
-        attempts: config.RETRY_COUNTER,
-        delay: {
-          min: 100,
-          max: 300
+  kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
+  if (!kafka_error) {
+    console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
+  } else {
+    if (config.SLACK.SLACKNOTIFY === 'true') {
+      postMessage("producer - kafka post fails", (response) => {
+        if (response.statusCode < 400) {
+          console.info('Message posted successfully');
+        } else if (response.statusCode < 500) {
+          console.error(`Error posting message to Slack API: ${response.statusCode} - ${response.statusMessage}`);
+        } else {
+          console.log(`Server error when processing message: ${response.statusCode} - ${response.statusMessage}`);
         }
-      }
-    }).then(function (result) {
-      console.log(result)
-    })
-*/
+      });
+    }
+  }
+
   res.send('error')
 
 })

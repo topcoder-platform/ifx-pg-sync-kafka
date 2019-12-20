@@ -22,6 +22,7 @@ const {
   migrateifxupdatedata
 } = require('./api/migrateifxpg')
 const pushToKafka = require('./api/pushToKafka')
+const postMessage = require('./api/postslackinfo')
 //const { migrateinsertdata } =  require('./api/migrate-data')
 const producer = new Kafka.Producer()
 
@@ -150,6 +151,22 @@ const dataHandler = function (messageSet, topic, partition) {
       if (payload.retryCount >= config.KAFKA_REPOST_COUNT) {
         logger.debug('Recached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
+        if (!kafka_error) {
+          console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
+        } else {
+          if (config.SLACK.SLACKNOTIFY === 'true') {
+            postMessage("producer - kafka post fails", (response) => {
+              if (response.statusCode < 400) {
+                console.info('Message posted successfully');
+              } else if (response.statusCode < 500) {
+                console.error(`Error posting message to Slack API: ${response.statusCode} - ${response.statusMessage}`);
+              } else {
+                console.log(`Server error when processing message: ${response.statusCode} - ${response.statusMessage}`);
+              }
+            });
+          }
+        }
+
 
       } else {
         payload['retryCount'] = payload.retryCount + 1;
@@ -203,6 +220,22 @@ const dataHandler = function (messageSet, topic, partition) {
           }
           //send error message to kafka
           kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
+          if (!kafka_error) {
+            console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
+          } else {
+            if (config.SLACK.SLACKNOTIFY === 'true') {
+              postMessage("consumer - kafka post fails", (response) => {
+                if (response.statusCode < 400) {
+                  console.info('Message posted successfully');
+                } else if (response.statusCode < 500) {
+                  console.error(`Error posting message to Slack API: ${response.statusCode} - ${response.statusMessage}`);
+                } else {
+                  console.log(`Server error when processing message: ${response.statusCode} - ${response.statusMessage}`);
+                }
+              });
+            }
+          }
+
         }
       }
       //send postgres_error message
