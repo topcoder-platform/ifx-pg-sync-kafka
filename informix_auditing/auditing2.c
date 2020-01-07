@@ -49,7 +49,8 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
   cbfunc(MI_EVENT_TYPE event_type, MI_CONNECTION *conn,
 				  void *event_data, void *user_data);
 /*--------------------------------------------------------------*/
-void do_auditing2(MI_FPARAM *fp)
+
+void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
 {
   MI_CONNECTION *sessionConnection;
   MI_CALLBACK_HANDLE *cbhandle;
@@ -58,6 +59,13 @@ void do_auditing2(MI_FPARAM *fp)
   chains_t *curChain;
   mi_string buffer[32], *pdata;
 
+  DPRINTF("logger", 80, ("connected user %s", mi_lvarchar_to_string(sessionusername)));
+  printf("operating user %s welcome test",mi_lvarchar_to_string(sessionusername));
+  if (strcmp(mi_lvarchar_to_string(sessionusername), "ifxsyncuser") == 0)
+  {
+    printf("automated user. skipping trigger");
+    return;
+  }
   DPRINTF("logger", 80, ("Entering do_auditing2()"));
   /* Get the trigger event and make sure we are in a trigger */
   trigger_operation = mi_trigger_event();
