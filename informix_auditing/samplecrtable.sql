@@ -47,10 +47,10 @@ CREATE TABLE testtable3 (
     ddate date
 ); 
 
-CREATE TABLE testtable4( 
-    dlvarchar lvarchar(20000),
-    ddatetime datetime
-); 
+CREATE TABLE testtable4 ( 
+  dlvarchar lvarchar,
+  ddatetime DATETIME YEAR TO SECOND
+);
 
 CREATE TRIGGER informix.testtable3_trigger_insert insert on "informix".testtable3 
 for each row
