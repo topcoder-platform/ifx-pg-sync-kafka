@@ -70,6 +70,12 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
             return("unsupportedtype");
      }
    else{ 
+   if (strcmp("date",   srcType) == 0) {
+     return (mi_date_to_string((mi_date *)datum));
+   }
+   if (strcmp("datetime",   srcType) == 0) {
+    return (mi_datetime_to_string((mi_datetime *)datum));
+   }
   fn = mi_cast_get(conn, tid, lvar_id,  &status);
   if (NULL == fn) {
     switch(status) {
@@ -96,8 +102,13 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
   tdesc = mi_type_typedesc(conn, typeid); 
   precision = mi_type_precision(tdesc);
 
+  printf("rputine read initiated \n");
+                     
   new_datum = mi_routine_exec(conn, fn, &ret, datum, collen, precision, fp);
+  printf("routine read completed \n");
   pbuf = mi_lvarchar_to_string(new_datum);
+  //pbuf = mi_date_to_string((mi_date *)datum);
+  //printf("\ndate data %s \n",pbuf);
   mi_routine_end(conn, fn); 
 	//return mi_type_typename(mi_type_typedesc(conn, my_type_id));
   }
