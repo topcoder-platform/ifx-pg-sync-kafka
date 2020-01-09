@@ -60,10 +60,10 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   mi_string buffer[32], *pdata;
 
   DPRINTF("logger", 80, ("connected user %s", mi_lvarchar_to_string(sessionusername)));
-  printf("operating user %s welcome test",mi_lvarchar_to_string(sessionusername));
+  printf("operating user %s welcome test \n",mi_lvarchar_to_string(sessionusername));
   if (strcmp(mi_lvarchar_to_string(sessionusername), "ifxsyncuser") == 0)
   {
-    printf("automated user. skipping trigger");
+    printf("automated user. skipping trigger\n");
     return;
   }
   DPRINTF("logger", 80, ("Entering do_auditing2()"));

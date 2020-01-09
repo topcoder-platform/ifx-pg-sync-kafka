@@ -65,6 +65,7 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
     MI_TYPE_DESC* dsc = mi_type_typedesc(conn, tid);
     mi_string* srcType = mi_type_typename(dsc);
     DPRINTF("logger",95,("-- typeName=%s --",srcType));
+    printf("-- typeName=%s --",srcType);
     if ((strcmp("blob",   srcType) == 0) || (strcmp("clob",   srcType) == 0) || (strcmp("text",   srcType) == 0) || (strcmp("byte",   srcType) == 0)) {
             return("unsupportedtype");
      }
@@ -495,7 +496,7 @@ int posttopic(char *jsondata, char *posturl)
   /* char *posturl = getenv("POSTURL");
    if (!postinfo)
    {
-     printf("no post topic set true or false. defualt it will post topic");
+     printf("no post topic set true or false. defualt it will post topic \n");
     // return 0;
    }
    else
@@ -506,7 +507,7 @@ int posttopic(char *jsondata, char *posturl)
            return 0;
        }
     }
-                printf("posting topic");
+                printf("posting topic \n");
                  if (!posturl)
                     {
                          posturl = fileeventsurl;
@@ -515,7 +516,7 @@ int posttopic(char *jsondata, char *posturl)
                         printf("no url provide in environment . So it is taking localurl");
                     }
 */                    
-                    printf("posting topic to url %s", posturl);
+                    printf("posting topic to url %s \n", posturl);
                     CURL *hnd = curl_easy_init();
                     curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
                     curl_easy_setopt(hnd, CURLOPT_URL, posturl);
