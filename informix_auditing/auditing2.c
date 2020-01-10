@@ -180,8 +180,15 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
 			if (pcur == NULL) {
 DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
             } else {
-			  sprintf(buffer, "%s%d_%d.json", LOGGERFILEPREFIX,
-					pmem->sessionId, pcur->seq);
+                          char filetime_buffer[30];
+                          struct timeval file_tv;
+                          time_t file_curtime;
+                          gettimeofday(&file_tv, NULL); 
+                          file_curtime=file_tv.tv_sec;
+                          strftime(filetime_buffer,30,"%m-%d-%Y_%T.",localtime(&file_curtime));
+                          printf("%s%ld\n",filetime_buffer,file_tv.tv_usec);
+			  sprintf(buffer, "%s%d_%d_%s%ld.json", LOGGERFILEPREFIX,
+					pmem->sessionId, pcur->seq,filetime_buffer,file_tv.tv_usec);
 DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
 			  fd = mi_file_open(buffer, O_WRONLY | O_APPEND | O_CREAT, 0644);
 			  if (pcur->json == NULL) {
