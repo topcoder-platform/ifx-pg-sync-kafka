@@ -201,7 +201,7 @@ async function dataHandler(messageSet, topic, partition) {
 
 
       } else {
-        if (payload.retryCount = 0)
+        if (payload.retryCount === 0)
         {
           payload['parentseqid'] = payload.SEQ_ID 
         }
