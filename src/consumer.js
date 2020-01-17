@@ -113,11 +113,23 @@ async function dataHandler(messageSet, topic, partition) {
       }
     }
     //audit success log
+    let retrycountconsumer,pseqid
+
     if (!postgreErr) {
+      retrycountconsumer = 0
+      if (!payload.retryCount) {
+        pseqid = payload.SEQ_ID
+      }
+      else
+      {
+        pseqid = payload.parentseqid
+      }
       await cAuditLog({
           SEQ_ID: payload.SEQ_ID,
           CONSUMER_DEPLOY_STATUS: 'success',
-          CONSUMER_UPDATE_TIME: Date.now()
+          CONSUMER_UPDATE_TIME: Date.now(),
+          CONSUMER_RETRY_COUNT: retrycountconsumer,
+          PL_SQUENCE_ID: pseqid             
         }).then(log => console.log('postgres ' + payload.OPERATION + ' success'))
         .catch(err => console.log(err))
 
@@ -130,11 +142,30 @@ async function dataHandler(messageSet, topic, partition) {
     } else {
 
       //audit failure log
+      if (!payload.retryCount) {
+        retrycountconsumer = 1
+        pseqid = payload.SEQ_ID
+      }
+      else
+      {
+        pseqid = payload.parentseqid
+        if (payload.retryCount >= config.KAFKA_REPOST_COUNT)
+        {
+          retrycountconsumer = 0
+        }
+        else
+        {
+          retrycountconsumer = payload.retryCount + 1;
+        }
+      }
+
       await cAuditLog({
           SEQ_ID: payload.SEQ_ID,
           CONSUMER_DEPLOY_STATUS: 'failure',
           CONSUMER_FAILURE_LOG: postgreErr,
-          CONSUMER_UPDATE_TIME: Date.now()
+          CONSUMER_UPDATE_TIME: Date.now(),
+          CONSUMER_RETRY_COUNT: retrycountconsumer,
+          PL_SQUENCE_ID: pseqid         
         }).then((log) => console.log('postgres ' + payload.OPERATION + ' failure'))
         .catch(err => console.log(err))
 
@@ -170,6 +201,10 @@ async function dataHandler(messageSet, topic, partition) {
 
 
       } else {
+        if (payload.retryCount = 0)
+        {
+          payload['parentseqid'] = payload.SEQ_ID 
+        }
         payload['retryCount'] = payload.retryCount + 1;
         let seqID = 0
         //add producer_log
@@ -178,7 +213,7 @@ async function dataHandler(messageSet, topic, partition) {
           SOURCE: config.SOURCE,
           SCHEMA_NAME: payload.SCHEMANAME,
           TABLE_NAME: payload.TABLENAME,
-          PRODUCER_PAYLOAD: payload.DATA,
+          PRODUCER_PAYLOAD: payload,
           OPERATION: payload.OPERATION
         }).then((log) => seqID = log.SEQ_ID)
 

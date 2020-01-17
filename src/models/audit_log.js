@@ -9,7 +9,9 @@ module.exports = (sequelize, DataTypes) =>
     PRODUCER_PUBLISH_TIME: { type: DataTypes.DATE },
     CONSUMER_DEPLOY_STATUS: { type: DataTypes.STRING },
     CONSUMER_FAILURE_LOG: { type: DataTypes.JSON },
-    CONSUMER_UPDATE_TIME:{ type: DataTypes.DATE }
+    CONSUMER_UPDATE_TIME:{ type: DataTypes.DATE },
+    CONSUMER_RETRY_COUNT:{ type: DataTypes.INTEGER },
+    PL_SQUENCE_ID:{ type: DataTypes.INTEGER }        
   }, {
     tableName: 'audit_log',
     paranoid: true,

@@ -65,7 +65,9 @@ cAuditLog.schema = Joi.object().keys({
   SEQ_ID: Joi.number().required(),
   CONSUMER_DEPLOY_STATUS: Joi.string().valid('success','failure').required(),
   CONSUMER_FAILURE_LOG: Joi.object(),
-  CONSUMER_UPDATE_TIME: Joi.date().required()
+  CONSUMER_UPDATE_TIME: Joi.date().required(),
+  CONSUMER_RETRY_COUNT: Joi.number(),
+  PL_SQUENCE_ID: Joi.number()
 })
 
 //add audit_log

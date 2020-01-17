@@ -30,7 +30,7 @@ app.post('/kafkaevents', async (req, res, next) => {
     SOURCE: config.SOURCE,
     SCHEMA_NAME: payload.SCHEMANAME,
     TABLE_NAME: payload.TABLENAME,
-    PRODUCER_PAYLOAD: payload.DATA,
+    PRODUCER_PAYLOAD: payload,
     OPERATION: payload.OPERATION
   }).then((log) => seqID = log.SEQ_ID)
 
