@@ -4,8 +4,11 @@ const Joi = require('joi')
 const config = require('config');
 const pg_dbname = config.get('POSTGRES.database')
 //insert payload
-async function migratepgInsert(dbpool, payload, dbname, table) {
+async function migratepgInsert(dbpool, payload) {
   console.log(payload);
+  const table = payload.TABLENAME
+  const dbname = payload.SCHEMANAME
+  payload = payload.DATA
   try {
     //const client = await dbpool.connect();
     const client = dbpool;
@@ -26,19 +29,70 @@ async function migratepgInsert(dbpool, payload, dbname, table) {
   }
 }
 //update payload
-async function migratepgUpdate(dbpool, payload, dbname, table) {
+async function migratepgUpdate(dbpool, payload) {
   console.log("-----------------------old update migratepgUpdate----------------");
   console.log(payload);
+  const table = payload.TABLENAME
+  const dbname = payload.SCHEMANAME
+  payload = payload.DATA  
   try {
     //const client = await dbpool.connect();
     const client = dbpool;
-    //console.log("welcome123");
+    console.log("welcome123");
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
+    var datatypeobj = new Object();
+    const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
+    const sqlfetchdatatypevalues = [ schemaname , table ];
+    await client.query(sqlfetchdatatype, sqlfetchdatatypevalues ).then(res => {
+      console.log("datatype fetched---------------------");
+      //console.log(res);
+
+      const data = res.rows; 
+      data.forEach(row => datatypeobj[ row['column_name'] ]= row['udt_name'] ); 
+    })    
+//  console.log(datatypeobj['dmoney']);
+    console.log("BBuidling condtion")
+    buffferoldcond = 0
+    bufferforsetdatastr = 0
+    var setdatastr = ""
+    var oldconditionstr = ""
+    columnNames.forEach((colName) => {
+      console.log(colName);
+      colobj = payload[colName]
+      if (buffferoldcond == 1) {
+          oldconditionstr = oldconditionstr + " and "
+      } 
+      if (bufferforsetdatastr == 1) {
+          setdatastr = setdatastr + " , "
+      } 
+      if ( datatypeobj[colName] == 'timestamp'   && colobj['new'].toUpperCase() == 'NULL' )
+      {
+          setdatastr = setdatastr +  "\"" + colName + "\"= NULL "
+      }
+      else 
+      {
+        setdatastr = setdatastr +   "\"" + colName + "\"= '" + colobj.new + "' "
+      }       
+      if ( datatypeobj[colName] == 'timestamp'   && colobj['old'].toUpperCase() == 'NULL' )
+      {
+          oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
+      }
+      else 
+      {
+        oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
+      }
+        buffferoldcond = 1
+        bufferforsetdatastr = 1
+    });
+    console.log(oldconditionstr);
+    console.log(setdatastr);
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
-    sql = `update ${table} set ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['new']}'`).join(', ')} where ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['old']}'`).join(' AND ')} ;` // "update <schema>:<table> set col_1=val_1, col_2=val_2, ... where primary_key_col=primary_key_val"
+//    sql = `update ${table} set ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['new']}'`).join(', ')} where ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['old']}'`).join(' AND ')} ;` // "update <schema>:<table> set col_1=val_1, col_2=val_2, ... where primary_key_col=primary_key_val"
+    sql = `update ${table} set ${setdatastr} where ${oldconditionstr} ;`
+    console.log("sqlstring .............................."); 
     console.log(sql);
     //update test5 set id='[object Object].new', cityname='[object Object].new' where id='[object Object].old' AND cityname='[obddject Object].old' ;    
     // sql = "insert into test6 (cityname) values ('verygoosdsdsdsd');";
@@ -51,9 +105,12 @@ async function migratepgUpdate(dbpool, payload, dbname, table) {
 }
 
 //delete payload.id
-async function migratepgDelete(dbpool, payload, dbname, table) {
+async function migratepgDelete(dbpool, payload) {
 
   console.log(payload);
+  const table = payload.TABLENAME
+  const dbname = payload.SCHEMANAME
+  payload = payload.DATA  
   try {
 
     //const client = await dbpool.connect();

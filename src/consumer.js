@@ -89,14 +89,14 @@ async function dataHandler(messageSet, topic, partition) {
     } else {
       if (payload.OPERATION === 'INSERT') {
         let entity = payload.DATA
-        await migratepgInsert(pool, entity, payload.SCHEMANAME, payload.TABLENAME)
+        await migratepgInsert(pool, payload)
           .catch(err => {
             postgreErr = err
             //console.log(err)
           })
 
       } else if (payload.OPERATION === 'UPDATE') {
-        await migratepgUpdate(pool, payload.DATA, payload.SCHEMANAME, payload.TABLENAME)
+        await migratepgUpdate(pool, payload)
           .catch(err => {
             postgreErr = err
             //console.log(err)
@@ -104,7 +104,7 @@ async function dataHandler(messageSet, topic, partition) {
 
       } else if (payload.OPERATION === 'DELETE') {
         let entity = payload.DATA
-        await migratepgDelete(pool, entity, payload.SCHEMANAME, payload.TABLENAME)
+        await migratepgDelete(pool, payload)
           .catch(err => {
             postgreErr = err
             //console.log(err)
