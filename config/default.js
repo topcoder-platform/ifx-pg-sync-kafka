@@ -51,5 +51,10 @@ module.exports = {
     URL: process.env.SLACKURL || 'us-east-1',
     SLACKCHANNEL: process.env.SLACKCHANNEL || 'ifxpg-migrator',
     SLACKNOTIFY:  process.env.SLACKNOTIFY || 'false'
-  }    
+  },
+  EXEMPTIONDATATYPE : {
+    MONEY: {
+      testdb_testtable5 : 'dmoney'
+    }
+  }  
 }

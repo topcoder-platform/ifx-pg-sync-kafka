@@ -11,15 +11,26 @@ async function migratepgInsert(dbpool, payload) {
   payload = payload.DATA
   try {
     //const client = await dbpool.connect();
+    console.log("db name : " +  dbname);
+    console.log("table name : " +  table);
+
+if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)) 
+{
+fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)
+console.log("Exemption File Name : " + fieldname);
+//payload[fieldname] = (payload.fieldname.toUpperCase == 'NULL') ? payload.fieldname:payload.fieldname.substr(1);
+payload[fieldname] = (payload[fieldname].toUpperCase == 'NULL') ? payload[fieldname]:payload[fieldname].substr(1);
+console.log(payload[fieldname])
+}
     const client = dbpool;
-    //console.log("welcome123");
+    console.log("=========== pg insert without unique datatype ==============");
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
     sql = `insert into ${table} (\"${columnNames.join('\", \"')}\") values (${columnNames.map((k) => `'${payload[k]}'`).join(', ')});` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
-    console.log(sql);
+    console.log("Executing query : " + sql);
     // sql = "insert into test6 (cityname) values ('verygoosdsdsdsd');";
     await client.query(sql);
     //await client.release(true);
@@ -37,8 +48,23 @@ async function migratepgUpdate(dbpool, payload) {
   payload = payload.DATA  
   try {
     //const client = await dbpool.connect();
+    console.log("db name : " +  dbname);
+    console.log("table name : " +  table);
+
+if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)) 
+{
+fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)
+console.log("Exemption File Name : " + fieldname);
+//payload[fieldname] = (payload.fieldname.toUpperCase == 'NULL') ? payload.fieldname:payload.fieldname.substr(1);
+//payload[fieldname] = (payload[fieldname].toUpperCase == 'NULL') ? payload[fieldname]:payload[fieldname].substr(1);
+//console.log(payload[fieldname])
+payload[fieldname]['old'] = (payload[fieldname]['old'].toUpperCase == 'NULL') ? payload[fieldname]['old']:payload[fieldname]['old'].substr(1);
+console.log(payload[fieldname]['old'])
+payload[fieldname]['new'] = (payload[fieldname]['new'].toUpperCase == 'NULL') ? payload[fieldname]['new']:payload[fieldname]['new'].substr(1);
+console.log(payload[fieldname]['old'])
+}    
     const client = dbpool;
-    console.log("welcome123");
+    console.log("=========== pg update without unique datatype ==============");
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     var datatypeobj = new Object();
