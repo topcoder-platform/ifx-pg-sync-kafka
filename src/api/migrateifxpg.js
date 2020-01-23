@@ -61,7 +61,7 @@ async function migrateifxinsertdata(payload, client) {
       }
       else 
       {
-        conditionstr = conditionstr + tablename + "." + colName + "= '" + colobj.new + "' "
+        conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
       }         
       bufffercond = 1
     }
