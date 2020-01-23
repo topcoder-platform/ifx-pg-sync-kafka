@@ -21,7 +21,7 @@ const {
 const pg_dbname = config.get('POSTGRES.database')
 async function migrateifxinsertdata(payload, client) {
   //retrive data and construc query
-  console.log("work1---------------------------------------")
+  console.log("=========== pg insert with unique datatype ==============")
   console.log(payload)
   const columns = payload.DATA
   console.log(columns)
@@ -29,6 +29,16 @@ async function migrateifxinsertdata(payload, client) {
   const tablename = payload.TABLENAME
   console.log("work2---------------------------------------")
   const db_schema = payload.SCHEMANAME
+  console.log("retriving data type ------")
+  var datatypeobj = new Object();
+  const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
+  const sqlfetchdatatypevalues = [ db_schema , tablename ];
+  await client.query(sqlfetchdatatype, sqlfetchdatatypevalues ).then(res => {
+    console.log("datatype fetched---------------------");
+    //console.log(res);
+    const data = res.rows; 
+    data.forEach(row => datatypeobj[ row['column_name'] ]= row['udt_name'] ); 
+  })    
   var conditionstr = ""
   const paramSql = Array.from(Array(columnNames.length).keys(), x => `$${x + 1}`).join(',');
   const insertSql = `insert into "${tablename}" (${columnNames.map(x => `"${x}"`).join(',')}) values(${paramSql})`;
@@ -44,7 +54,15 @@ async function migrateifxinsertdata(payload, client) {
       }
       console.log(columns[colName])
       tempvar = columns[colName]
-      conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
+      //conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
+      if ( datatypeobj[colName] == 'timestamp'   && colobj['new'].toUpperCase() == 'NULL' )
+      {
+        conditionstr = conditionstr + tablename + "." + colName + " is NULL "
+      }
+      else 
+      {
+        conditionstr = conditionstr + tablename + "." + colName + "= '" + colobj.new + "' "
+      }         
       bufffercond = 1
     }
   });
@@ -94,10 +112,10 @@ async function migrateifxinsertdata(payload, client) {
 
 }
 async function migrateifxupdatedata(payload, client) {
-  console.log("--------------- Executing fun migrateifxupdatedata --------------------");
+  console.log("=========== pg update with unique datatype ==============");
   console.log(payload);
-  console.log("work1---------------------------------------")
-  console.log(payload)
+  //console.log("work1---------------------------------------")
+  //console.log(payload)
   const columns = payload.DATA
   console.log(columns)
   const columnNames = Object.keys(columns)
@@ -106,6 +124,16 @@ async function migrateifxupdatedata(payload, client) {
   console.log("work2---------------------------------------")
   const db_schema = payload.SCHEMANAME
   console.log(tablename);
+  console.log("retriving data type ------")
+  var datatypeobj = new Object();
+  const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
+  const sqlfetchdatatypevalues = [ db_schema , tablename ];
+  await client.query(sqlfetchdatatype, sqlfetchdatatypevalues ).then(res => {
+    console.log("datatype fetched---------------------");
+    //console.log(res);
+    const data = res.rows; 
+    data.forEach(row => datatypeobj[ row['column_name'] ]= row['udt_name'] ); 
+  })  
   var conditionstr = ""
   var updatestr = ""
   bufffercond = 0
@@ -117,22 +145,37 @@ async function migrateifxupdatedata(payload, client) {
   columnNames.forEach((colName) => {
     console.log(colName)
     colobj = columns[colName]
-    console.log(typeof (colobj))
-    console.log(colobj)
-    console.log(colobj.new)
+    //console.log(typeof (colobj))
+    //console.log(colobj)
+    //console.log(colobj.new)   
     if (colobj.new != 'unsupportedtype') {
       if (bufffernewcond == 1) {
         conditionstr = conditionstr + " and "
       }
-      conditionstr = conditionstr + tablename + "." + colName + "= '" + colobj.new + "' "
+      if ( datatypeobj[colName] == 'timestamp'   && colobj['new'].toUpperCase() == 'NULL' )
+      {
+        conditionstr = conditionstr + tablename + "." + colName + " is NULL "
+      }
+      else 
+      {
+        conditionstr = conditionstr + tablename + "." + colName + "= '" + colobj.new + "' "
+      }        
       bufffernewcond = 1
     }
     if (colobj['old'] != 'unsupportedtype') {
       if (buffferoldcond == 1) {
         oldconditionstr = oldconditionstr + " and "
       }
-      console.log(colobj.old);
-      oldconditionstr = oldconditionstr + tablename + "." + colName + "= '" + colobj.old + "' "
+      //console.log(colobj.old);
+      //oldconditionstr = oldconditionstr + tablename + "." + colName + "= '" + colobj.old + "' "
+      if ( datatypeobj[colName] == 'timestamp'   && colobj['old'].toUpperCase() == 'NULL' )
+      {
+          oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
+      }
+      else 
+      {
+        oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
+      }      
       buffferoldcond = 1
     }
 

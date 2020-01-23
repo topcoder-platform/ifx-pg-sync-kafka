@@ -73,7 +73,6 @@ console.log(payload[fieldname]['old'])
     await client.query(sqlfetchdatatype, sqlfetchdatatypevalues ).then(res => {
       console.log("datatype fetched---------------------");
       //console.log(res);
-
       const data = res.rows; 
       data.forEach(row => datatypeobj[ row['column_name'] ]= row['udt_name'] ); 
     })    
