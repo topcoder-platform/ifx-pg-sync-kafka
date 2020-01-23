@@ -55,7 +55,7 @@ async function migrateifxinsertdata(payload, client) {
       console.log(columns[colName])
       tempvar = columns[colName]
       //conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
-      if ( datatypeobj[colName] == 'timestamp'   && colobj['new'].toUpperCase() == 'NULL' )
+      if ( datatypeobj[colName] == 'timestamp'   && columns[colName].toUpperCase() == 'NULL' )
       {
         conditionstr = conditionstr + tablename + "." + colName + " is NULL "
       }
@@ -88,8 +88,8 @@ async function migrateifxinsertdata(payload, client) {
       columnNames.forEach((colName) => {
         if (row[colName])
         {
-        if (isUtf8(row[colName])) {
-          console.log(`utf8 format ${colName}`);
+        if (isUtf8(row[colName]) || datatypeobj[colName] == 'timestamp' ) {
+          console.log(`utf8 or datetime format ${colName}`);
           //         values.push(new Buffer.from(row[colName],'binary'));
           values.push(row[colName]);
         } else {
@@ -210,7 +210,7 @@ async function migrateifxupdatedata(payload, client) {
         }
         if (row[colName])
         {
-        if (isUtf8(row[colName])) {
+        if (isUtf8(row[colName]) || datatypeobj[colName] == 'timestamp' ) {
           //console.log(`utf8 format ${colName}`);
           values.push(row[colName]);
           updatestr = updatestr + "\"" + colName + "\"= \$" + counter + " "
