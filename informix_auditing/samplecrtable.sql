@@ -91,3 +91,17 @@ for each row
     (
         execute procedure "informix".do_auditing2(USER)
     );
+
+
+CREATE TABLE testtype_text (
+  text_id int PRIMARY KEY,
+  testingtext   text
+);
+CREATE TABLE testtype_byte (
+  byte_id int PRIMARY KEY,
+  testingbyte   byte
+);
+CREATE TABLE testtype_blob (
+  blob_id int PRIMARY KEY,
+  testingblob blob
+);
