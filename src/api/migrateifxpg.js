@@ -86,6 +86,8 @@ async function migrateifxinsertdata(payload, client) {
     for (const row of data) {
       const values = [];
       columnNames.forEach((colName) => {
+        if (row[colName])
+        {
         if (isUtf8(row[colName])) {
           console.log(`utf8 format ${colName}`);
           //         values.push(new Buffer.from(row[colName],'binary'));
@@ -94,6 +96,9 @@ async function migrateifxinsertdata(payload, client) {
           //  values.push(row[colName]);
           values.push(new Buffer.from(row[colName], 'binary'));
         }
+      } else {
+        values.push(row[colName]);         
+      }
         //values.push(new Buffer.from(row[colName],'binary'));
       });
       let schemaname = (db_schema == pg_dbname) ? 'public' : db_schema;
@@ -203,6 +208,8 @@ async function migrateifxupdatedata(payload, client) {
         if (buffferupcond == 1) {
           updatestr = updatestr + " , "
         }
+        if (row[colName])
+        {
         if (isUtf8(row[colName])) {
           //console.log(`utf8 format ${colName}`);
           values.push(row[colName]);
@@ -214,6 +221,12 @@ async function migrateifxupdatedata(payload, client) {
           updatestr = updatestr + "\"" + colName + "\"= \$" + counter + " "
           buffferupcond = 1
           counter = counter + 1
+        }
+        } else {
+          values.push(row[colName]);
+          updatestr = updatestr + "\"" + colName + "\"= \$" + counter + " "
+          buffferupcond = 1
+          counter = counter + 1          
         }
       });
       //logger.debug(`postgres insert sql ${insertSql} with values[${JSON.stringify(values)}`);
