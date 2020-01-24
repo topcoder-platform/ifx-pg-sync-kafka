@@ -55,7 +55,7 @@ async function migrateifxinsertdata(payload, client) {
       console.log(columns[colName])
       tempvar = columns[colName]
       //conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
-      if ( (datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'decimal'  ) && columns[colName].toUpperCase() == 'NULL' )
+      if ( (datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric'  ) && columns[colName].toUpperCase() == 'NULL' )
       {
         conditionstr = conditionstr + tablename + "." + colName + " is NULL "
       }
@@ -157,7 +157,7 @@ async function migrateifxupdatedata(payload, client) {
       if (bufffernewcond == 1) {
         conditionstr = conditionstr + " and "
       }
-      if ( ( datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'decimal' )  && colobj['new'].toUpperCase() == 'NULL' )
+      if ( ( datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' )  && colobj['new'].toUpperCase() == 'NULL' )
       {
         conditionstr = conditionstr + tablename + "." + colName + " is NULL "
       }
@@ -173,7 +173,7 @@ async function migrateifxupdatedata(payload, client) {
       }
       //console.log(colobj.old);
       //oldconditionstr = oldconditionstr + tablename + "." + colName + "= '" + colobj.old + "' "
-      if ( (datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'decimal' )  && colobj['old'].toUpperCase() == 'NULL' )
+      if ( (datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' )  && colobj['old'].toUpperCase() == 'NULL' )
       {
           oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
       }

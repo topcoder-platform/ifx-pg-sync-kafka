@@ -91,7 +91,7 @@ console.log(payload[fieldname]['old'])
       if (bufferforsetdatastr == 1) {
           setdatastr = setdatastr + " , "
       } 
-      if ( (datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'decimal' )  && colobj['new'].toUpperCase() == 'NULL' )
+      if ( (datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' )  && colobj['new'].toUpperCase() == 'NULL' )
       {
           setdatastr = setdatastr +  "\"" + colName + "\"= NULL "
       }
@@ -99,7 +99,7 @@ console.log(payload[fieldname]['old'])
       {
         setdatastr = setdatastr +   "\"" + colName + "\"= '" + colobj.new + "' "
       }       
-      if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'decimal' ) && colobj['old'].toUpperCase() == 'NULL' )
+      if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' ) && colobj['old'].toUpperCase() == 'NULL' )
       {
           oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
       }
