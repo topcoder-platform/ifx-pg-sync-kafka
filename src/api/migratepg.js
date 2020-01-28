@@ -72,22 +72,34 @@ console.log(payload[fieldname]['old'])
     const sqlfetchdatatypevalues = [ schemaname , table ];
     await client.query(sqlfetchdatatype, sqlfetchdatatypevalues ).then(res => {
       console.log("datatype fetched---------------------");
-      //console.log(res);
+   //   console.log(res);
       const data = res.rows; 
       data.forEach(row => datatypeobj[ row['column_name'] ]= row['udt_name'] ); 
     })    
 //  console.log(datatypeobj['dmoney']);
+    //Primary key retrival
+    var datapk = [];
+    //const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
+    const sqlfetchdatapk = 'SELECT c.column_name, c.ordinal_position FROM information_schema.key_column_usage AS c LEFT JOIN information_schema.table_constraints AS t ON t.constraint_name = c.constraint_name WHERE t.constraint_schema=$1 AND t.table_name = $2 AND t.constraint_type = $3';
+    const sqlfetchdatapkvalues = [ schemaname , table , 'PRIMARY KEY' ];
+    await client.query(sqlfetchdatapk, sqlfetchdatapkvalues ).then(res => {
+      console.log("primary fetched---------------------");
+      //console.log(res);
+      const data = res.rows; 
+      data.forEach(row =>  datapk.push(row['column_name']) ); 
+    }) 
+    console.log
     console.log("BBuidling condtion")
     buffferoldcond = 0
     bufferforsetdatastr = 0
     var setdatastr = ""
     var oldconditionstr = ""
     columnNames.forEach((colName) => {
-      console.log(colName);
+     // console.log(colName);
       colobj = payload[colName]
-      if (buffferoldcond == 1) {
-          oldconditionstr = oldconditionstr + " and "
-      } 
+     // if (buffferoldcond == 1) {
+     //     oldconditionstr = oldconditionstr + " and "
+     // } 
       if (bufferforsetdatastr == 1) {
           setdatastr = setdatastr + " , "
       } 
@@ -98,7 +110,12 @@ console.log(payload[fieldname]['old'])
       else 
       {
         setdatastr = setdatastr +   "\"" + colName + "\"= '" + colobj.new + "' "
-      }       
+      }  
+  if (datapk.length == 0)
+  {
+      if (buffferoldcond == 1) {
+          oldconditionstr = oldconditionstr + " and "
+      }   
       if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' ) && colobj['old'].toUpperCase() == 'NULL' )
       {
           oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
@@ -107,7 +124,36 @@ console.log(payload[fieldname]['old'])
       {
         oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
       }
-        buffferoldcond = 1
+      buffferoldcond = 1
+  }
+  else
+  {
+     if( datapk.includes(colName) )
+      {
+             if (buffferoldcond == 1) {
+                  oldconditionstr = oldconditionstr + " and "
+              } 
+              if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' ) && colobj['old'].toUpperCase() == 'NULL' )
+              {
+                  oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
+              }
+              else 
+              {
+                oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
+              }
+              buffferoldcond = 1
+      }
+
+  }     
+      // if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' ) && colobj['old'].toUpperCase() == 'NULL' )
+      // {
+      //    oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
+      // }
+      // else 
+      // {
+      //   oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
+      // }
+       // buffferoldcond = 1
         bufferforsetdatastr = 1
     });
     console.log(oldconditionstr);
@@ -116,7 +162,7 @@ console.log(payload[fieldname]['old'])
     console.log(sql);
     await client.query(sql);
 //    sql = `update ${table} set ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['new']}'`).join(', ')} where ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['old']}'`).join(' AND ')} ;` // "update <schema>:<table> set col_1=val_1, col_2=val_2, ... where primary_key_col=primary_key_val"
-    sql = `update ${table} set ${setdatastr} where ${oldconditionstr} ;`
+    sql = `update "${table}" set ${setdatastr} where ${oldconditionstr} ;`
     console.log("sqlstring .............................."); 
     console.log(sql);
     //update test5 set id='[object Object].new', cityname='[object Object].new' where id='[object Object].old' AND cityname='[obddject Object].old' ;    
