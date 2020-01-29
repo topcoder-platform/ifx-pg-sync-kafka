@@ -594,7 +594,7 @@ char * escapecharjson( char *jsonvalue_org)
 			} else if (*jsonvalue_copy == '\b') {
                 posi = strlen(escjsonvalue);
                 sprintf(&escjsonvalue[posi], "%s","\\b") ;  
-			} else if ('\x00' <= *jsonvalue_copy && *jsonvalue_copy <= '\x1f') {
+			} else if ('\x00' >= *jsonvalue_copy && *jsonvalue_copy <= '\x1f') {
                 posi = strlen(escjsonvalue);
                 sprintf(&escjsonvalue[posi], "\\u%4x",(int)*jsonvalue_copy) ; 
             } else {

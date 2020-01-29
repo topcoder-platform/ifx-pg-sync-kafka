@@ -29,7 +29,7 @@ console.log(payload[fieldname])
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
-    sql = `insert into ${table} (\"${columnNames.join('\", \"')}\") values (${columnNames.map((k) => `'${payload[k]}'`).join(', ')});` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
+    sql = `insert into "${table}" (\"${columnNames.join('\", \"')}\") values (${columnNames.map((k) => `'${payload[k]}'`).join(', ')});` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
     console.log("Executing query : " + sql);
     // sql = "insert into test6 (cityname) values ('verygoosdsdsdsd');";
     await client.query(sql);
