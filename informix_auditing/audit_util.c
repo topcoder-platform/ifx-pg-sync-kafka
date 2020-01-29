@@ -149,6 +149,7 @@ mi_string *doInsertCN()
   //fixname(pdbname);
   sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);     
   posi = strlen(buffer);
+  printf("\"TABLENAME\": \"%s\", ", tabname);
   sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", tabname);
   posi = strlen(buffer);
   sprintf(&buffer[posi], "\"OPERATION\": \"INSERT\", ");       
@@ -172,7 +173,7 @@ DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
 	   sprintf(&buffer[posi], ", ");
 	   posi = strlen(buffer);
 	 }	
-         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, pcast);
+         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, escapecharjson(pcast));
           if (strcmp("unsupportedtype",   pcast) == 0)  {
             strcpy(uniquedatatype, "true");
           }  
@@ -322,7 +323,11 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
            sprintf(&buffer[posi], ", ");
            posi = strlen(buffer);
          }
-         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, pcast);
+         //printf("%s",pcast);
+  
+         //pcast = escapecharjson(pcast);
+         //printf("%s",pcast);
+         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, escapecharjson(pcast));
           if (strcmp("unsupportedtype",   pcast) == 0)  {
             strcpy(uniquedatatype, "true");
           }
@@ -434,7 +439,7 @@ mi_string *doUpdateCN()
       sprintf(&buffer[pbufLen], ", ");
       pbufLen = strlen(buffer);
     }
-    sprintf(&buffer[pbufLen], "\"%s\" : { \"old\" : \"%s\", \"new\" : \"%s\" }", poldcolname, pcast, pcast2);
+    sprintf(&buffer[pbufLen], "\"%s\" : { \"old\" : \"%s\", \"new\" : \"%s\" }", poldcolname, escapecharjson(pcast), escapecharjson(pcast2));
     if (strcmp("unsupportedtype",   pcast2) == 0)  {
             strcpy(uniquedatatype, "true");
       }
@@ -553,4 +558,54 @@ int posttopic(char *jsondata, char *posturl)
 }
 
 /*--------------------------------------------------------------*/
+char * escapecharjson( char *jsonvalue_org)
+{
+    char *jsonvalue_copy; // first copy the pointer to not change the original
+    char *escjsonvalue;
+    int posi = 0;
+    //char *p = jsonvalue_org;
+    //for (; *p != '\0'; p++) {}
+    //printf("length of string : %ld",(p - jsonvalue_org));
+    escjsonvalue = (char *)malloc(10000);
+    for (jsonvalue_copy = jsonvalue_org; *jsonvalue_copy != '\0'; jsonvalue_copy++) {
 
+           printf("%c:%d\n", *jsonvalue_copy,*jsonvalue_copy);
+			if (*jsonvalue_copy == '"') {
+				posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\\"") ;  
+			} else if (*jsonvalue_copy == '\t') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\t") ;
+			} else if (*jsonvalue_copy == '\f') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\f") ; 
+			} else if (*jsonvalue_copy == '\n') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\n") ;
+			} else if (*jsonvalue_copy == '\r') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\r") ;
+			} else if (*jsonvalue_copy == '\\') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\\\") ;
+			} else if (*jsonvalue_copy == '/') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\/") ; 
+			} else if (*jsonvalue_copy == '\b') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\b") ;  
+			} else if ('\x00' <= *jsonvalue_copy && *jsonvalue_copy <= '\x1f') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "\\u%4x",(int)*jsonvalue_copy) ; 
+            } else {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%c",*jsonvalue_copy) ;  
+			}
+			
+        
+    }
+    //p=NULL;
+    jsonvalue_copy=NULL;
+    //printf("%s", escjsonvalue);
+        return(escjsonvalue);
+    }
