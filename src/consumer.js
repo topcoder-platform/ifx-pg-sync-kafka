@@ -20,7 +20,8 @@ const {
 } = require('./api/migratepg')
 const {
   migrateifxinsertdata,
-  migrateifxupdatedata
+  migrateifxupdatedata,
+  migrateifxdeletedata
 } = require('./api/migrateifxpg')
 const pushToKafka = require('./api/pushToKafka')
 const postMessage = require('./api/postslackinfo')
@@ -85,6 +86,14 @@ async function dataHandler(messageSet, topic, partition) {
             //console.log(err)
           })
       }
+      if (payload.OPERATION === 'DELETE') {
+        await migrateifxdeletedata(payload, pool)
+          .catch(err => {
+            postgreErr = err
+            //console.log(err)
+          })
+      }      
+      
       console.log("Different approach")
     } else {
       if (payload.OPERATION === 'INSERT') {

@@ -192,7 +192,7 @@ async function migratepgDelete(dbpool, payload) {
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
-    sql = `delete from ${table} where ${Object.keys(payload).map((key) => `${key}='${payload[key]['new']}'`).join('  AND  ')}  ;` // "delete query
+    sql = `delete from "${table}" where ${Object.keys(payload).map((key) => `${key}='${payload[key]}'`).join('  AND  ')}  ;` // "delete query
     console.log(sql);
     // sql = "insert into test6 (cityname) values ('verygoosdsdsdsd');";
     await client.query(sql);
