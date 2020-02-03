@@ -180,6 +180,7 @@ async function migratepgDelete(dbpool, payload) {
 
   console.log(payload);
   const table = payload.TABLENAME
+  const tablename = payload.TABLENAME
   const dbname = payload.SCHEMANAME
   payload = payload.DATA  
   try {
@@ -189,10 +190,66 @@ async function migratepgDelete(dbpool, payload) {
     //console.log("welcome123");
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
+    console.log("retriving data type ------")
+    var datatypeobj = new Object();
+    const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
+    const sqlfetchdatatypevalues = [schemaname, tablename];
+    await client.query(sqlfetchdatatype, sqlfetchdatatypevalues).then(res => {
+      console.log("datatype fetched---------------------");
+      //console.log(res);
+      const data = res.rows;
+      data.forEach(row => datatypeobj[row['column_name']] = row['udt_name']);
+    })
+    //Primary key retrival
+    var datapk = [];
+    //const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
+    const sqlfetchdatapk = 'SELECT c.column_name, c.ordinal_position FROM information_schema.key_column_usage AS c LEFT JOIN information_schema.table_constraints AS t ON t.constraint_name = c.constraint_name WHERE t.constraint_schema=$1 AND t.table_name = $2 AND t.constraint_type = $3';
+    const sqlfetchdatapkvalues = [schemaname, tablename, 'PRIMARY KEY'];
+    await client.query(sqlfetchdatapk, sqlfetchdatapkvalues).then(res => {
+      console.log("primary fetched---------------------");
+      //console.log(res);
+      const data = res.rows;
+      data.forEach(row => datapk.push(row['column_name']));
+    })    
+
+    var conditionstr = ""
+    bufffercond = 0  
+    columnNames.forEach((colName) => {
+      if (datapk.length == 0)
+      {
+        if (bufffercond == 1) {
+          conditionstr = conditionstr + " and "
+        }
+        if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric') && columns[colName].toUpperCase() == 'NULL') {
+          conditionstr = conditionstr + tablename + "." + colName + " is NULL "
+        } else {
+          conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
+        }
+        bufffercond = 1    
+      } else {
+        if( datapk.includes(colName) )
+        {
+          if (datapk.includes(colName)) {
+            if (bufffercond == 1) {
+              conditionstr = conditionstr + " and "
+            }
+            if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric') && columns[colName].toUpperCase() == 'NULL') {
+              conditionstr = conditionstr + tablename + "." + colName + " is NULL "
+            } else {
+              conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
+            }
+            bufffercond = 1
+          }      
+        }
+    
+      }
+    });
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
-    sql = `delete from "${table}" where ${Object.keys(payload).map((key) => `${key}='${payload[key]}'`).join('  AND  ')}  ;` // "delete query
+    conditionstr
+    sql = `delete from "${table}" where ${conditionstr}  ;` // "delete query
+    //sql = `delete from "${table}" where ${Object.keys(payload).map((key) => `${key}='${payload[key]}'`).join('  AND  ')}  ;` // "delete query
     console.log(sql);
     // sql = "insert into test6 (cityname) values ('verygoosdsdsdsd');";
     await client.query(sql);
