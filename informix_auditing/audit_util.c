@@ -566,7 +566,8 @@ char * escapecharjson( char *jsonvalue_org)
     //char *p = jsonvalue_org;
     //for (; *p != '\0'; p++) {}
     //printf("length of string : %ld",(p - jsonvalue_org));
-    escjsonvalue = (char *)malloc(10000);
+    //escjsonvalue = (char *)malloc(10000);
+    escjsonvalue = (char *)calloc(10000, sizeof(char));
     for (jsonvalue_copy = jsonvalue_org; *jsonvalue_copy != '\0'; jsonvalue_copy++) {
 
            printf("%c:%d\n", *jsonvalue_copy,*jsonvalue_copy);
@@ -606,6 +607,6 @@ char * escapecharjson( char *jsonvalue_org)
     }
     //p=NULL;
     jsonvalue_copy=NULL;
-    //printf("%s", escjsonvalue);
+    printf("%s", escjsonvalue);
         return(escjsonvalue);
     }
