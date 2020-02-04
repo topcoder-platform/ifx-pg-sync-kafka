@@ -339,12 +339,14 @@ async function migrateifxdeletedata(payload, client) {
   const table = payload.TABLENAME
   const tablename = payload.TABLENAME
   const dbname = payload.SCHEMANAME
+  columns = payload.DATA 
   payload = payload.DATA  
   try {
 
     //const client = await dbpool.connect();
     //const client = dbpool;
     //console.log("welcome123");
+    console.log("=========== pg delete with unique datatype ==============");
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     console.log("retriving data type ------")

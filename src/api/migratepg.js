@@ -182,12 +182,13 @@ async function migratepgDelete(dbpool, payload) {
   const table = payload.TABLENAME
   const tablename = payload.TABLENAME
   const dbname = payload.SCHEMANAME
+  columns = payload.DATA
   payload = payload.DATA  
   try {
 
     //const client = await dbpool.connect();
     const client = dbpool;
-    //console.log("welcome123");
+    console.log("=========== pg delete without unique datatype ==============");
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     console.log("retriving data type ------")
@@ -227,8 +228,7 @@ async function migratepgDelete(dbpool, payload) {
         }
         bufffercond = 1    
       } else {
-        if( datapk.includes(colName) )
-        {
+
           if (datapk.includes(colName)) {
             if (bufffercond == 1) {
               conditionstr = conditionstr + " and "
@@ -240,14 +240,13 @@ async function migratepgDelete(dbpool, payload) {
             }
             bufffercond = 1
           }      
-        }
+        
     
       }
     });
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
-    conditionstr
     sql = `delete from "${table}" where ${conditionstr}  ;` // "delete query
     //sql = `delete from "${table}" where ${Object.keys(payload).map((key) => `${key}='${payload[key]}'`).join('  AND  ')}  ;` // "delete query
     console.log(sql);
