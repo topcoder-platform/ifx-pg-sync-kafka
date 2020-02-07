@@ -133,7 +133,7 @@ async function create_consumer_app_log(payload) {
         await cAuditLog({
                 SEQ_ID: payload.SEQ_ID,
                 CONSUMER_PAYLOAD: payload,
-                CONSUMER_UPDATE_RETRY_COUNT: retrycountconsumer,
+                CONSUMER_UPDATE_RETRY_COUNT: consumer_retry_count,
                 OVERALL_STATUS: 'ConsumerReceved'
             }).then(log => console.log('Added consumer audit log successfully'))
             .catch(err => console.log(err))

@@ -114,7 +114,7 @@ async function dataHandler(messageSet, topic, partition) {
     }
     //audit success log
     if (!postgreErr) {
-      consumerpg_success_log(payload)
+      await consumerpg_success_log(payload)
       return consumer.commitOffset({
         topic: topic,
         partition: partition,
@@ -124,8 +124,9 @@ async function dataHandler(messageSet, topic, partition) {
     } else {
 
       //audit failure log
-      consumerpg_failure_log(payload, postgreErr)
-
+      console.log(postgreErr)
+      await consumerpg_failure_log(payload, postgreErr)
+      
       let msgValue = {
         ...postgreErr,
         recipients: config.topic_error.EMAIL,
