@@ -8,7 +8,7 @@ const {
     cAuditLog
 } = require('../api/audit')
 
-function create_producer_app_log(payload,overallstatus) {
+async function create_producer_app_log(payload,overallstatus) {
     let seqID = payload.TIME + "_" + payload.TABLENAME
     let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
     let producer_retry_count
@@ -57,7 +57,7 @@ function create_producer_app_log(payload,overallstatus) {
 
 }
 
-function producerpost_success_log(payload , overallstatus) {
+async function producerpost_success_log(payload , overallstatus) {
     let seqID = payload.TIME + "_" + payload.TABLENAME
     await pAuditLog_update({
         SEQ_ID: seqID,
@@ -70,7 +70,7 @@ function producerpost_success_log(payload , overallstatus) {
     console.log(`producer : ${logMessage}`);
 }
 
-function producerpost_failure_log(payload, kafka_error, overallstatus) {
+async function producerpost_failure_log(payload, kafka_error, overallstatus) {
     let producer_retry_count
     let seqID = payload.TIME + "_" + payload.TABLENAME
     let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
@@ -107,7 +107,7 @@ function producerpost_failure_log(payload, kafka_error, overallstatus) {
 //     CONSUMER_PAYLOAD: Joi.object(),
 //     CONSUMER_FAILURE_LOG: Joi.object()
 //   })
-function create_consumer_app_log(payload) {
+async function create_consumer_app_log(payload) {
     let consumer_retry_count
     let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
     if (reconcile_flag == 0) {
@@ -142,7 +142,7 @@ function create_consumer_app_log(payload) {
     }
 }
 
-function consumerpg_success_log(payload) {
+async function consumerpg_success_log(payload) {
     let consumer_retry_count
     //let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
     // let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
@@ -167,7 +167,7 @@ function consumerpg_success_log(payload) {
         console.log(`consumer : ${logMessage}`);        
 }
 
-function consumerpg_failure_log(payload, postgreErr) {
+async function consumerpg_failure_log(payload, postgreErr) {
     //consumser table
     let consumer_retry_count
     //let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0

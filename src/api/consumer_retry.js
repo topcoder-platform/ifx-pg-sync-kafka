@@ -9,7 +9,7 @@ const {
     postMessage,
     validateMsgPosted
   } = require('./postslackinfo')
-function consumerretry(producer, payload)
+async function consumerretry(producer, payload)
 {
     payload['retryCount'] = payload.retryCount + 1;
     //add producer_log
