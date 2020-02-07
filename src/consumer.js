@@ -140,7 +140,7 @@ async function dataHandler(messageSet, topic, partition) {
           console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
           if (config.SLACK.SLACKNOTIFY === 'true') {
-            postMessage("consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors", (response) => {
+            await postMessage("consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors", async (response) => {
               await validateMsgPosted(response.statusCode, response.statusMessage)
             });
           }
@@ -163,7 +163,7 @@ async function dataHandler(messageSet, topic, partition) {
           console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
           if (config.SLACK.SLACKNOTIFY === 'true') {
-            postMessage("Consumer Retry reached Max- But unable to post kafka due to errors", (response) => {
+            await postMessage("Consumer Retry reached Max- But unable to post kafka due to errors", async (response) => {
               await validateMsgPosted(response.statusCode, response.statusMessage)
             });
           }
