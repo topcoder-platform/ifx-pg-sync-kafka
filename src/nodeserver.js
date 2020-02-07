@@ -66,8 +66,8 @@ app.post('/kafkaevents', async (req, res, next) => {
     console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
   } else {
     if (config.SLACK.SLACKNOTIFY === 'true') {
-      await postMessage("producer post meesage failed- But usable to post the error in kafka error topic due to errors", (response) => {
-          await validateMsgPosted(response.statusCode,response.statusMessage)
+       postMessage("producer post meesage failed- But usable to post the error in kafka error topic due to errors", (response) => {
+           validateMsgPosted(response.statusCode,response.statusMessage)
       });
     }
   }
