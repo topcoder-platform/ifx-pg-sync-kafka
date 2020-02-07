@@ -42,7 +42,7 @@ function postMessage(message, callback) {
     postReq.write(body);
     postReq.end();
 }
-function validateMsgPosted(responsecode,responsemsg) {
+async function validateMsgPosted(responsecode,responsemsg) {
     if (responsecode < 400) {
         console.info('Message posted successfully');
       } else if (responsecode < 500) {
