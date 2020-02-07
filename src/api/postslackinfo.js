@@ -5,7 +5,7 @@ const https = require('https');
 hookUrl = config.SLACK.URL
 slackChannel = config.SLACK.SLACKCHANNEL
 
-function postMessage(message, callback) {
+async function postMessage(message, callback) {
 
     var slackMessage = {
         channel: `${slackChannel}`,

@@ -40,17 +40,17 @@ builddeploy_steps: &builddeploy_steps
             ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-producer-deployvar
             source buildenvvar
             ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
-            # consumer deployment
-            rm -rf buildenvvar
-            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-consumer-deployvar
-            source buildenvvar            
-            ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
-            # without kafka dynamodb
-            rm -rf buildenvvar
-            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-withoutkafka-deployvar
-            source buildenvvar            
-            ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-${APPNAME}-withoutkafka-appvar -i ${APPNAME}
-            # notify deployment
+            # # consumer deployment
+            # rm -rf buildenvvar
+            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-consumer-deployvar
+            # source buildenvvar            
+            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
+            # # without kafka dynamodb
+            # rm -rf buildenvvar
+            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-withoutkafka-deployvar
+            # source buildenvvar            
+            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-${APPNAME}-withoutkafka-appvar -i ${APPNAME}
+            # # notify deployment
             # rm -rf buildenvvar            
             # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-notify-deployvar
             # source buildenvvar            
