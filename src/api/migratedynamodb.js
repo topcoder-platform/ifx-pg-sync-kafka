@@ -5,11 +5,13 @@ var AWS = require("aws-sdk");
 async function pushToDynamoDb(payload) {
   try {
     console.log('----Inside DynomoDB code -------');
+    let seqID = payload.TIME + "_" + payload.TABLENAME
     // console.log(payload)
     var params = {
       TableName: config.DYNAMODB.TABLENAME,
       Item: {
-        SequenceID: payload.TIME,
+        SequenceID: seqID,
+        pl_time: payload.TIME,
         pl_document: payload,
         pl_table: payload.TABLENAME,
         pl_schemaname: payload.SCHEMANAME,

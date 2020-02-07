@@ -42,5 +42,17 @@ function postMessage(message, callback) {
     postReq.write(body);
     postReq.end();
 }
+function validateMsgPosted(responsecode,responsemsg) {
+    if (responsecode < 400) {
+        console.info('Message posted successfully');
+      } else if (responsecode < 500) {
+        console.error(`Error posting message to Slack API: ${responsecode} - ${responsemsg}`);
+      } else {
+        console.log(`Server error when processing message: ${responsecode} - ${responsemsg}`);
+      }
+}
 
-module.exports = postMessage
+module.exports = { 
+    postMessage,
+    validateMsgPosted
+}

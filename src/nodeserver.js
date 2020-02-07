@@ -4,11 +4,15 @@ const Kafka = require('no-kafka')
 const config = require('config')
 const bodyParser = require('body-parser')
 const {
-  producerLog,
-  pAuditLog
-} = require('./api/audit')
+  create_producer_app_log,
+  producerpost_success_log,
+  producerpost_failure_log
+} = require('./common/app_log')
 const pushToKafka = require('./api/pushToKafka')
-const postMessage = require('./api/postslackinfo')
+const { 
+  postMessage,
+  validateMsgPosted
+} = require('./api/postslackinfo')
 
 const app = express()
 app.use(bodyParser.json()); // to support JSON-encoded bodies
@@ -22,23 +26,16 @@ app.get('/', function (req, res) {
 
 app.post('/kafkaevents', async (req, res, next) => {
   const payload = req.body
-  let seqID = 0
+  let seqID = payload.TIME + "_" + payload.TABLENAME
+  //retry_count  = payload['RETRY_COUNT'] ? payload['RETRY_COUNT'] : 0
+  //let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
+  let producer_retry_count
 
-  //add producer_log
-  await producerLog({
-    TOPICNAME: config.topic.NAME,
-    SOURCE: config.SOURCE,
-    SCHEMA_NAME: payload.SCHEMANAME,
-    TABLE_NAME: payload.TABLENAME,
-    PRODUCER_PAYLOAD: payload,
-    OPERATION: payload.OPERATION
-  }).then((log) => seqID = log.SEQ_ID)
-
-  if (!seqID) {
-    console.log('ProducerLog Failure')
-    return
+  try {
+    await create_producer_app_log(payload,"PayloadReceived")
+  } catch (error) {
+    console.log(error)
   }
-  console.log('ProducerLog Success')
 
   //send kafka message
   let kafka_error
@@ -49,23 +46,14 @@ app.post('/kafkaevents', async (req, res, next) => {
   kafka_error = await pushToKafka(producer, config.topic.NAME, msgValue)
   //add auditlog
   if (!kafka_error) {
-    await pAuditLog({
-      SEQ_ID: seqID,
-      PRODUCER_PUBLISH_STATUS: 'success',
-      PRODUCER_PUBLISH_TIME: Date.now()
-    }).then((log) => console.log('Send Success'))
+    await producerpost_success_log(payload, "PayloadPosted")
     res.send('done')
     return
   }
 
   //add auditlog
-  await pAuditLog({
-    SEQ_ID: seqID,
-    PRODUCER_PUBLISH_STATUS: 'failure',
-    PRODUCER_FAILURE_LOG: kafka_error,
-    PRODUCER_PUBLISH_TIME: Date.now()
-  }).then((log) => console.log('Send Failure'))
-
+  await producerpost_failure_log(payload,kafka_error,'PayloadPostFailed')
+  
   msgValue = {
     ...kafka_error,
     SEQ_ID: seqID,
@@ -78,14 +66,8 @@ app.post('/kafkaevents', async (req, res, next) => {
     console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
   } else {
     if (config.SLACK.SLACKNOTIFY === 'true') {
-      postMessage("producer - kafka post fails", (response) => {
-        if (response.statusCode < 400) {
-          console.info('Message posted successfully');
-        } else if (response.statusCode < 500) {
-          console.error(`Error posting message to Slack API: ${response.statusCode} - ${response.statusMessage}`);
-        } else {
-          console.log(`Server error when processing message: ${response.statusCode} - ${response.statusMessage}`);
-        }
+      postMessage("producer post meesage failed- But usable to post the error in kafka error topic due to errors", (response) => {
+          await validateMsgPosted(response.statusCode,response.statusMessage)
       });
     }
   }

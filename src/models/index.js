@@ -17,8 +17,8 @@ models['auditlog'].consumer_log = db['auditlog'].import('./consumer_log')
 //models['testdb'].test = db['testdb'].import('./test')
 
 
-models['auditlog'].audit_log.belongsTo(models['auditlog'].producer_log, { foreignKey: 'SEQ_ID' })
-models['auditlog'].consumer_log.belongsTo(models['auditlog'].producer_log, { foreignKey: 'SEQ_ID' })
+// models['auditlog'].audit_log.belongsTo(models['auditlog'].producer_log, { foreignKey: 'SEQ_ID' })
+// models['auditlog'].consumer_log.belongsTo(models['auditlog'].producer_log, { foreignKey: 'SEQ_ID' })
 
 config.db.DB_NAME.forEach(dbname =>{
   db[dbname].sync({ force:false })

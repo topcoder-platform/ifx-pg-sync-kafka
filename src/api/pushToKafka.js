@@ -27,7 +27,7 @@ async function pushToKafka(producer, topicname, payload) {
       console.log(kafka_error)
       return kafka_error
     }
-    console.log(result)
+    //console.log(result)
   })
   return
 }
