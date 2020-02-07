@@ -18,7 +18,7 @@ const dataHandler = function (messageSet, topic, partition) {
         }
      
       // commit offset
-      return consumer.commitOffset({ topic: topic, partition: partition, offset: m.offset, metadata: 'optional' })
+     consumer.commitOffset({ topic: topic, partition: partition, offset: m.offset, metadata: 'optional' })
     }).catch(err => console.log(err))
 };
 
