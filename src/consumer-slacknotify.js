@@ -1,7 +1,10 @@
 const Kafka = require('no-kafka');
 const Promise = require('bluebird');
 const config = require('config');
-const postMessage = require('./api/postslackinfo');
+const { 
+    postMessage,
+    validateMsgPosted
+  } = require('./api/postslackinfo')
 const consumer = new Kafka.GroupConsumer();
 
 const dataHandler = function (messageSet, topic, partition) {
@@ -9,18 +12,8 @@ const dataHandler = function (messageSet, topic, partition) {
       const payload = JSON.parse(m.message.value)
       if(config.SLACK.SLACKNOTIFY === 'true') {
         console.log(payload)
-        postMessage(Object.values(payload), (response) => {
-            if (response.statusCode < 400) {
-                console.info('Message posted successfully');
-              //  callback(null);
-            } else if (response.statusCode < 500) {
-                console.error(`Error posting message to Slack API: ${response.statusCode} - ${response.statusMessage}`);
-               // callback(null);  // Don't retry because the error is due to a problem with the request
-            } else {
-                // Let Lambda retry
-                console.log(`Server error when processing message: ${response.statusCode} - ${response.statusMessage}`);
-                //callback(`Server error when processing message: ${response.statusCode} - ${response.statusMessage}`);
-            }
+        await postMessage(Object.values(payload), async (response) => {
+            await validateMsgPosted(response.statusCode, response.statusMessage)
         });
         }
      

@@ -39,7 +39,7 @@ async function consumerretry(producer, payload)
         console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
       } else {
         if (config.SLACK.SLACKNOTIFY === 'true') {
-          postMessage("consumer repost failed - But unable to post message in kafka error topic due to errors", (response) => {
+          await postMessage("consumer repost failed - But unable to post message in kafka error topic due to errors", async (response) => {
             await validateMsgPosted(response.statusCode, response.statusMessage)
           });
         }
