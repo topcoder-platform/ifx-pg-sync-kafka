@@ -38,7 +38,7 @@ function producerLog_update(payload) {
 
 pAuditLog.schema = Joi.object().keys({
   SEQ_ID: Joi.string().required(),
-  PAYLOAD_TIME: Joi.date(),
+  REQUEST_CREATE_TIME: Joi.date(),
   PRODUCER_PAYLOAD: Joi.object(),
   PRODUCER_PUBLISH_STATUS: Joi.string().valid('success','failure'),
   PRODUCER_FAILURE_LOG: Joi.object(),

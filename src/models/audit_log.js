@@ -4,7 +4,7 @@
 module.exports = (sequelize, DataTypes) => 
   sequelize.define('audit_log', {  
     SEQ_ID: { type: DataTypes.STRING, primaryKey: true },
-    PAYLOAD_TIME: { type: DataTypes.DATE },
+    REQUEST_CREATE_TIME: { type: DataTypes.DATE },
     PRODUCER_PAYLOAD: { type: DataTypes.JSON },
     PRODUCER_PUBLISH_STATUS: { type: DataTypes.STRING },
     PRODUCER_FAILURE_LOG: { type: DataTypes.JSON },

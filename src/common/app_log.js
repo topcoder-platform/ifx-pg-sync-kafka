@@ -32,7 +32,7 @@ async function create_producer_app_log(payload,overallstatus) {
         if ((reconcile_flag == 0) && (producer_retry_count == 0)) {
             await pAuditLog({
                 SEQ_ID: seqID,
-                PAYLOAD_TIME: payload.TIME,
+                REQUEST_CREATE_TIME: Date.now(),
                 PRODUCER_PAYLOAD: payload,
                 PODUCER_PUBLISH_RETRY_COUNT: producer_retry_count,
                 OVERALL_STATUS: overallstatus,

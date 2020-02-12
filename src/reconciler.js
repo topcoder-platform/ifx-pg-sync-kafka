@@ -32,16 +32,18 @@ ElapsedTime = 600000
     }
   }
 
-docClient.get(params, function(err, data) {
-    if (err) {
-        console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
-    } else {
-        console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
 
+docClient.query(params, function(err, data) {
+    if (err) {
+        console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+    } else {
+        console.log("Query succeeded.");
+        data.Items.forEach(function(item) {
+            console.log(" -", item.year + ": " + item.title);
         //select query from for last 10 mins pg fethte seq_id
         //compare the dynamo seqid exist with pgseqid
-        //if not exist , post res api with paylaod from dynamodb
-
+        //if not exist , post res api with paylaod from dynamodb            
+        });
     }
 });
 //case 1 Reading dequence ID from dynamo DB
