@@ -56,5 +56,14 @@ module.exports = {
     MONEY: {
       testdb_testtable5 : 'dmoney'
     }
+  },
+  RECONCILER : 
+  {
+    RECONCILER_IGNORE_STATUS : 'PostgresUpdated',
+    RECONCILER_START_ELAPSE_TIME : 1,
+    RECONCILER_DIFF_PERIOD : 10,
+    RECONCILER_DURATION_TYPE : 'm',
+    RECONCILER_RETRY_COUNT : 1,
+    RECONCILER_POST_URL : 'http://ifxpg-migrator.topcoder-dev.com/kafkaevents'
   }  
 }
