@@ -5,7 +5,7 @@ const pgOptions = config.get('POSTGRES')
 const database = 'auditlog'
 const pgConnectionString = `postgresql://${pgOptions.user}:${pgOptions.password}@${pgOptions.host}:${pgOptions.port}/${database}`
 console.log(pgConnectionString)
-const pgClient = new pg.Client(pgConnectionString)
+//const pgClient = new pg.Client(pgConnectionString)
 //pgClient.connect();i
 async function setupPgClient () {
   try {
@@ -41,6 +41,7 @@ ElapsedTime = 4995999000
   }
   console.log("scanning");
   await docClient.scan(params, onScan);
+  return
 }
 async function onScan(err, data) {
     if (err) {
@@ -62,11 +63,26 @@ async function onScan(err, data) {
             params.ExclusiveStartKey = data.LastEvaluatedKey;
             await docClient.scan(params, onScan);
         }
+        else
+        {
+		return
+        }
     }
 }
 
 async function validate_data_in_pg(SequenceID,payload)
 {
+ const pgClient = new pg.Client(pgConnectionString) 
+ //  await setupPgClient()
+  try {
+    await pgClient.connect()
+        logger.debug('Connected to Pg Client2 Audit:')
+    }
+   catch (err) {
+    logger.error('Could not setup postgres client2')
+    logger.logFullError(err)
+    process.exit()
+  }
     console.log(SequenceID);
     let schemaname = 'public';     
     const sqlquerytovalidate = 'SELECT COUNT(*) FROM audit_log WHERE seq_id=$1';
@@ -97,15 +113,18 @@ else
           
     });
 }
+pgClient.end();
     });
+return
 }
 async function main()
 {
-await setupPgClient()
+//await setupPgClient()
 await dynamo_pg_validation()
-await pgClient.end()
+//await pgClient.on('end')
 }
 main()
+//await pgClient.end()
 // docClient.query(params, function(err, data) {
 //     if (err) {
 //         console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
