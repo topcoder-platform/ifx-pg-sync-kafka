@@ -11,13 +11,12 @@ console.log(pgConnectionString)
 const logger = require('./src/common/logger')
 const _ = require('lodash')
 var AWS = require("aws-sdk");
-let params
+var params
+var docClient = new AWS.DynamoDB.DocumentClient({
+    region: config.DYNAMODB.REGION,
+    convertEmptyValues: true
+});
 async function dynamo_pg_validation() {
-    var docClient = new AWS.DynamoDB.DocumentClient({
-        region: config.DYNAMODB.REGION,
-        convertEmptyValues: true
-    });
-
     ElapsedTime = config.RECONCILER.RECONCILER_ELAPSE_TIME
     //ElapsedTime = 4995999000
     params = {
