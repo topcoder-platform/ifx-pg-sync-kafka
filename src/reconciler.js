@@ -11,7 +11,7 @@ console.log(pgConnectionString)
 const logger = require('./src/common/logger')
 const _ = require('lodash')
 var AWS = require("aws-sdk");
-var params
+let params
 async function dynamo_pg_validation() {
     var docClient = new AWS.DynamoDB.DocumentClient({
         region: config.DYNAMODB.REGION,
