@@ -11,16 +11,16 @@ console.log(pgConnectionString)
 const logger = require('./src/common/logger')
 const _ = require('lodash')
 var AWS = require("aws-sdk");
-
+var params
 async function dynamo_pg_validation() {
     var docClient = new AWS.DynamoDB.DocumentClient({
         region: config.DYNAMODB.REGION,
         convertEmptyValues: true
     });
 
-    //ElapsedTime = 600000
-    ElapsedTime = 4995999000
-    var params = {
+    ElapsedTime = config.RECONCILER.RECONCILER_ELAPSE_TIME
+    //ElapsedTime = 4995999000
+    params = {
         TableName: config.DYNAMODB.TABLENAME,
         FilterExpression: "NodeSequenceID between :time_1 and :time_2",
         ExpressionAttributeValues: {
@@ -69,7 +69,6 @@ async function validate_data_in_pg(SequenceID, payload) {
         process.exit()
     }
     console.log(SequenceID);
-    let schemaname = 'public';
     const sqlquerytovalidate = 'SELECT COUNT(*) FROM audit_log WHERE seq_id=$1';
     const sqlquerytovalidate_values = [SequenceID]
     console.log(sqlquerytovalidate);
@@ -114,7 +113,7 @@ async function repostfailure() {
     // reconcile_status < 1 ;
     rec_ignore_status = config.RECONCILER.RECONCILER_IGNORE_STATUS
     rec_start_elapse = config.RECONCILER.RECONCILER_START_ELAPSE_TIME
-    rec_diff_period = config.RECONCILER.RECONCILER_DIFF_PERIOD
+    rec_diff_period = config.RECONCILER.RECONCILER_DIFF_PERIOD  //Need to be equal to or greater than scheduler time
     rec_interval_type = config.RECONCILER.RECONCILER_DURATION_TYPE
     rec_retry_count = config.RECONCILER.RECONCILER_RETRY_COUNT
 
@@ -126,7 +125,6 @@ async function repostfailure() {
     var sqltofetchfailure_values = [rec_ignore_status, rec_diff_period, rec_start_elapse, rec_retry_count]
     console.log('sql : ', sqltofetchfailure)
     await pgClient.query(sqltofetchfailure, sqltofetchfailure_values, async (err, res) => {
-
         if (err) {
             var errmsg0 = `error-sync: Audit reconsiler query  "${err.message}"`
             logger.debug(errmsg0)

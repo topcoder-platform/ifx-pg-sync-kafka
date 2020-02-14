@@ -59,6 +59,7 @@ module.exports = {
   },
   RECONCILER : 
   {
+    RECONCILER_ELAPSE_TIME : 60000,
     RECONCILER_IGNORE_STATUS : 'PostgresUpdated',
     RECONCILER_START_ELAPSE_TIME : 1,
     RECONCILER_DIFF_PERIOD : 10,
