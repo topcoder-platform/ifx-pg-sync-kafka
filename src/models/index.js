@@ -23,6 +23,6 @@ models['auditlog'].consumer_log = db['auditlog'].import('./consumer_log')
 config.db.DB_NAME.forEach(dbname =>{
   db[dbname].sync({ force:false })
 })
-
+models['auditlog'].sequelize.query('ALTER TABLE audit_log ALTER COLUMN REQUEST_CREATE_TIME TYPE TIMESTAMP without time zone;')
 models.Sequelize = Sequelize
 module.exports = models
