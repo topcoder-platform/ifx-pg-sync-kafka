@@ -116,12 +116,13 @@ async function repostfailure() {
     rec_interval_type = config.RECONCILER.RECONCILER_DURATION_TYPE
     rec_retry_count = config.RECONCILER.RECONCILER_RETRY_COUNT
 
-    sql1 = "select seq_id, producer_payload from audit_log where audit_log.overall_status not in ($1)"
-    sql2 = " and audit_log.request_create_time between (timezone('utc',now()) - interval '1" + rec_interval_type + "' * $2)"
-    sql3 = " and  (timezone('utc',now()) - interval '1" + rec_interval_type + "' * $3)"
-    sql4 = " and audit_log.reconcile_status < $4 ;"
+    sql1 = `select "SEQ_ID", "PRODUCER_PAYLOAD" from audit_log where "OVERALL_STATUS" not in ($1)`
+    sql2 = ` and "REQUEST_CREATE_TIME" between (timezone('utc',now()) - interval '1${rec_interval_type}' * $2)`
+    sql3 = ` and  (timezone('utc',now()) - interval '1${rec_interval_type}' * $3)`
+    sql4 = ` and "RECONCILE_STATUS" < $4 ;`
     sqltofetchfailure = sql1 + sql2 + sql3 + sql4
     var sqltofetchfailure_values = [rec_ignore_status, rec_diff_period, rec_start_elapse, rec_retry_count]
+    //var sqltofetchfailure_values = [rec_ignore_status, rec_diff_period, rec_start_elapse, rec_retry_count]
     console.log('sql : ', sqltofetchfailure)
     await pgClient.query(sqltofetchfailure, sqltofetchfailure_values, async (err, res) => {
         if (err) {
@@ -132,8 +133,8 @@ async function repostfailure() {
             console.log("Reposting Data---------------------\n");
             const data = res.rows;
             data.forEach(async (row) => {
-                console.log("\npost the topic for : " + row['seq_id']);
-                await posttopic(row['producer_payload'], 1)
+                console.log("\npost the topic for : " + row['SEQ_ID']);
+                await posttopic(row['PRODUCER_PAYLOAD'], 1)
             });
         }
         pgClient.end();
