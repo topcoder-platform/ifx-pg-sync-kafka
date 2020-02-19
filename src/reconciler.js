@@ -156,8 +156,17 @@ async function postpayload_to_restapi(payload) {
     };
 
     request(options, function (error, response, body) {
-        if (error) throw new Error(error);
-        console.log(body);
+        if (error) {
+            var errmsg0 = `error-sync: Audit Reconsiler1 query  "${error.message}"`
+            logger.debug (errmsg0)
+            throw new Error(error);
+            
+        }
+        else
+        {
+            console.log("ReconcilerIFXtoPG :  " + payload.SEQ_ID + " Success")
+            console.log(body);
+        }
     });
     return
 }
