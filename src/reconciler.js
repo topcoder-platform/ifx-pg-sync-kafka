@@ -68,7 +68,7 @@ async function validate_data_in_pg(SequenceID, payload) {
         process.exit()
     }
     console.log(SequenceID);
-    const sqlquerytovalidate = 'SELECT COUNT(*) FROM audit_log WHERE seq_id=$1';
+    const sqlquerytovalidate = 'SELECT COUNT(*) FROM audit_log WHERE "SEQ_ID"=$1';
     const sqlquerytovalidate_values = [SequenceID]
     console.log(sqlquerytovalidate);
     await pgClient.query(sqlquerytovalidate, sqlquerytovalidate_values, async (err, res) => {
