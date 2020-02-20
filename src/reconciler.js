@@ -164,7 +164,7 @@ async function postpayload_to_restapi(payload) {
         }
         else
         {
-            console.log("ReconcilerIFXtoPG :  " + payload.SEQ_ID + " Success")
+            console.log("ReconcilerIFXtoPG :  " + payload['TIME'] + "_" + payload['TABLENAME'] + " Success")
             console.log(body);
         }
     });

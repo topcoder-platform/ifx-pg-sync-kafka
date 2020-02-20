@@ -9,7 +9,7 @@
     "consumer": "nodemon src/consumer.js",
     "producerwithoutkafka" : "nodemon src/node-server-without-kafka.js",
     "ifxpgnotify": "nodemon src/consumer-slacknotify.js",
-    "reconciler": "nodemon src/reconciler.js"    
+    "reconciler": "node src/reconciler.js"    
   },
   "author": "",
   "license": "ISC",
