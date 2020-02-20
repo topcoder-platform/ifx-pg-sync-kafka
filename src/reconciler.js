@@ -151,7 +151,7 @@ async function postpayload_to_restapi(payload) {
             'cache-control': 'no-cache',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
+        body: payload,
         json: true
     };
 
