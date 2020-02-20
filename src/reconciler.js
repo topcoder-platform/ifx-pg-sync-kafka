@@ -8,7 +8,7 @@ const pgConnectionString = `postgresql://${pgOptions.user}:${pgOptions.password}
 console.log(pgConnectionString)
 //const pgClient = new pg.Client(pgConnectionString)
 //pgClient.connect();
-const logger = require('./src/common/logger')
+const logger = require('./common/logger')
 const _ = require('lodash')
 var AWS = require("aws-sdk");
 var params
