@@ -103,7 +103,7 @@ console.log(payload[fieldname]['old'])
       if (bufferforsetdatastr == 1) {
           setdatastr = setdatastr + " , "
       } 
-      if ( (datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' )  && colobj['new'].toUpperCase() == 'NULL' )
+      if ( (datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' )  && colobj['new'].toUpperCase() == 'NULL' )
       {
           setdatastr = setdatastr +  "\"" + colName + "\"= NULL "
       }
@@ -116,7 +116,7 @@ console.log(payload[fieldname]['old'])
       if (buffferoldcond == 1) {
           oldconditionstr = oldconditionstr + " and "
       }   
-      if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' ) && colobj['old'].toUpperCase() == 'NULL' )
+      if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['old'].toUpperCase() == 'NULL' )
       {
           oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
       }
@@ -133,7 +133,7 @@ console.log(payload[fieldname]['old'])
              if (buffferoldcond == 1) {
                   oldconditionstr = oldconditionstr + " and "
               } 
-              if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' ) && colobj['old'].toUpperCase() == 'NULL' )
+              if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['old'].toUpperCase() == 'NULL' )
               {
                   oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
               }
@@ -221,7 +221,7 @@ async function migratepgDelete(dbpool, payload) {
         if (bufffercond == 1) {
           conditionstr = conditionstr + " and "
         }
-        if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric') && columns[colName].toUpperCase() == 'NULL') {
+        if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && columns[colName].toUpperCase() == 'NULL') {
           conditionstr = conditionstr + tablename + "." + colName + " is NULL "
         } else {
           conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
@@ -233,7 +233,7 @@ async function migratepgDelete(dbpool, payload) {
             if (bufffercond == 1) {
               conditionstr = conditionstr + " and "
             }
-            if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric') && columns[colName].toUpperCase() == 'NULL') {
+            if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && columns[colName].toUpperCase() == 'NULL') {
               conditionstr = conditionstr + tablename + "." + colName + " is NULL "
             } else {
               conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
