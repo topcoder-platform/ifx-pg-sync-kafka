@@ -177,7 +177,15 @@ console.log(payload[fieldname]['old'])
   buffferupcond=0
   columnNames.forEach((colName) => {
         colobj = payload[colName]
-        values.push(colobj.new);
+        if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['new'].toUpperCase() == 'NULL' )
+        {
+          values.push(null);
+        }
+        else 
+        {
+          values.push(colobj.new);
+        }        
+        //values.push(colobj.new);
         if (buffferupcond == 1) {
           updatestr = updatestr + " , "
         }
