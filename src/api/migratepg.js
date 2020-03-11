@@ -170,12 +170,23 @@ console.log(payload[fieldname]['old'])
     await client.query(sql);
 //    sql = `update ${table} set ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['new']}'`).join(', ')} where ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['old']}'`).join(' AND ')} ;` // "update <schema>:<table> set col_1=val_1, col_2=val_2, ... where primary_key_col=primary_key_val"
   
-  sql = `update "${table}" set ${columnNames.map(x => `"${x}"=$${x + 1}`).join(',')} where ${oldconditionstr} ;`
+  // sql = `update "${table}" set ${columnNames.map(x => `"${x}"=$${x + 1}`).join(',')} where ${oldconditionstr} ;`
   const values = [];
+  var updatestr = ""
+  counter = 1
+  buffferupcond=0
   columnNames.forEach((colName) => {
         colobj = payload[colName]
         values.push(colobj.new);
+        if (buffferupcond == 1) {
+          updatestr = updatestr + " , "
+        }
+        updatestr = updatestr + "\"" + colName + "\"= \$" + counter + " "
+        buffferupcond = 1
+        counter = counter + 1
   }); 
+ 
+  sql = `update "${table}" set ${updatestr} where ${oldconditionstr} ;`
   //  sql = `update "${table}" set ${setdatastr} where ${oldconditionstr} ;`
     console.log("sqlstring .............................."); 
     console.log(sql);
