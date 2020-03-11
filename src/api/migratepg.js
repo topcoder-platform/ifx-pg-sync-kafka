@@ -7,6 +7,7 @@ const pg_dbname = config.get('POSTGRES.database')
 async function migratepgInsert(dbpool, payload) {
   console.log(payload);
   const table = payload.TABLENAME
+  const tablename = payload.TABLENAME
   const dbname = payload.SCHEMANAME
   payload = payload.DATA
   try {
@@ -29,10 +30,16 @@ console.log(payload[fieldname])
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
-    sql = `insert into "${table}" (\"${columnNames.join('\", \"')}\") values (${columnNames.map((k) => `'${payload[k]}'`).join(', ')});` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
+    const paramSql = Array.from(Array(columnNames.length).keys(), x => `$${x + 1}`).join(',');
+    sql = `insert into "${tablename}" (${columnNames.map(x => `"${x}"`).join(',')}) values(${paramSql})`;
+    const values = [];
+    columnNames.forEach((colName) => {
+          values.push(payload[colName]);
+    }); 
+    //sql = `insert into "${table}" (\"${columnNames.join('\", \"')}\") values (${columnNames.map((k) => `'${payload[k]}'`).join(', ')});` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
     console.log("Executing query : " + sql);
-    // sql = "insert into test6 (cityname) values ('verygoosdsdsdsd');";
-    await client.query(sql);
+    // await client.query(sql);
+    await client.query(sql, values);
     //await client.release(true);
     console.log(`end connection of postgres for database`);
   } catch (e) {
@@ -162,12 +169,19 @@ console.log(payload[fieldname]['old'])
     console.log(sql);
     await client.query(sql);
 //    sql = `update ${table} set ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['new']}'`).join(', ')} where ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['old']}'`).join(' AND ')} ;` // "update <schema>:<table> set col_1=val_1, col_2=val_2, ... where primary_key_col=primary_key_val"
-    sql = `update "${table}" set ${setdatastr} where ${oldconditionstr} ;`
+  
+  sql = `update "${table}" set ${columnNames.map(x => `"${x}"=$${x + 1}`).join(',')} where ${oldconditionstr} ;`
+  const values = [];
+  columnNames.forEach((colName) => {
+        colobj = payload[colName]
+        values.push(colobj.new);
+  }); 
+  //  sql = `update "${table}" set ${setdatastr} where ${oldconditionstr} ;`
     console.log("sqlstring .............................."); 
     console.log(sql);
-    //update test5 set id='[object Object].new', cityname='[object Object].new' where id='[object Object].old' AND cityname='[obddject Object].old' ;    
-    // sql = "insert into test6 (cityname) values ('verygoosdsdsdsd');";
-    await client.query(sql);
+    
+    //await client.query(sql);
+    await client.query(sql,values);
     //await client.release(true);
     console.log(`end connection of postgres for database`);
   } catch (e) {
