@@ -34,7 +34,14 @@ console.log(payload[fieldname])
     sql = `insert into "${tablename}" (${columnNames.map(x => `"${x}"`).join(',')}) values(${paramSql})`;
     const values = [];
     columnNames.forEach((colName) => {
+      if (  payload[colName].toUpperCase() == 'NULL' )
+      {
+          values.push(null);
+      }
+      else
+      {
           values.push(payload[colName]);
+      }
     }); 
     //sql = `insert into "${table}" (\"${columnNames.join('\", \"')}\") values (${columnNames.map((k) => `'${payload[k]}'`).join(', ')});` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
     console.log("Executing query : " + sql);
@@ -177,7 +184,8 @@ console.log(payload[fieldname]['old'])
   buffferupcond=0
   columnNames.forEach((colName) => {
         colobj = payload[colName]
-        if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['new'].toUpperCase() == 'NULL' )
+        //if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['new'].toUpperCase() == 'NULL' )
+        if ( colobj['new'].toUpperCase() == 'NULL' )
         {
           values.push(null);
         }
