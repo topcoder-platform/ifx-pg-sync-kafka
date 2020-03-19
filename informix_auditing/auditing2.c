@@ -32,7 +32,7 @@
  */
 #include "audit_util.h"
 
-#define LOGGERFILEPREFIX "/tmp/audit"
+#define LOGGERFILEPREFIX "/mnt/efsifxpg/audit"
 
 typedef struct chains {
   mi_integer seq;

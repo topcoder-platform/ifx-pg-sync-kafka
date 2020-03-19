@@ -76,6 +76,9 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
    if (strcmp("datetime",   srcType) == 0) {
     return (mi_datetime_to_string((mi_datetime *)datum));
    }
+   if (strcmp("integer",   srcType) == 0) {
+    collen = 30;
+   }
   fn = mi_cast_get(conn, tid, lvar_id,  &status);
   if (NULL == fn) {
     switch(status) {
@@ -103,7 +106,7 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
   precision = mi_type_precision(tdesc);
 
   printf("rputine read initiated \n");
-                     
+  printf("rputine read initiated %ld\n",collen);                   
   new_datum = mi_routine_exec(conn, fn, &ret, datum, collen, precision, fp);
   printf("routine read completed \n");
   pbuf = mi_lvarchar_to_string(new_datum);
