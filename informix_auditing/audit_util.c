@@ -76,7 +76,13 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
    if (strcmp("datetime",   srcType) == 0) {
     return (mi_datetime_to_string((mi_datetime *)datum));
    }
-   if (strcmp("integer",   srcType) == 0) {
+   if ((strcmp("integer",   srcType) == 0) ||
+                 (strcmp("bigint",    srcType) == 0) ||
+                 (strcmp("int8",      srcType) == 0) ||
+                 (strcmp("serial",    srcType) == 0) ||
+                 (strcmp("bigserial", srcType) == 0) ||
+                 (strcmp("serial8",   srcType) == 0) ||
+                 (strcmp("smallint",  srcType) == 0)) {
     collen = 30;
    }
   fn = mi_cast_get(conn, tid, lvar_id,  &status);
