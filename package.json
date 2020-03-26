@@ -5,10 +5,10 @@
   "main": "src/nodeserver.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "producer": "nodemon src/nodeserver.js",
-    "consumer": "nodemon src/consumer.js",
-    "producerwithoutkafka" : "nodemon src/node-server-without-kafka.js",
-    "ifxpgnotify": "nodemon src/consumer-slacknotify.js",
+    "producer": "node src/nodeserver.js",
+    "consumer": "node src/consumer.js",
+    "producerwithoutkafka" : "node src/node-server-without-kafka.js",
+    "ifxpgnotify": "node src/consumer-slacknotify.js",
     "reconciler": "node src/reconciler.js"    
   },
   "author": "",

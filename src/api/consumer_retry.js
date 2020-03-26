@@ -22,7 +22,7 @@ async function consumerretry(producer, payload)
     //add auditlog
     if (!kafka_error) {
       await producerpost_success_log(payload, "ConsumerReposted")
-      res.send('done')
+      //res.send('done')
       //res.send('done')
     } else {
       //add auditlog
