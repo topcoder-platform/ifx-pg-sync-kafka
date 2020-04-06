@@ -40,6 +40,8 @@
 #include <time.h>
 #include <stdio.h>
 #include <curl/curl.h>
+#include <string.h>
+#include <malloc.h>
 
 #define BUFSIZE 29900
 
@@ -53,4 +55,5 @@ mi_string *doUpdateCN();
 mi_integer set_tracing(mi_lvarchar *class, mi_integer lvl,
                        mi_lvarchar *tfile, MI_FPARAM *fparam);
 char* gettimestamp();
-int posttopic(char *jsondata);                       
+int posttopic(char *jsondata, char *posturl); 
+char * escapecharjson( char *jsonvalue_org);                      

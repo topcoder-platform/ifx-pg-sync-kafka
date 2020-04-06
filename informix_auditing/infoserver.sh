@@ -1,0 +1,3 @@
+onmode -ky
+oninit -vy
+

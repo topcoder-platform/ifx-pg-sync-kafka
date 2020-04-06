@@ -32,7 +32,7 @@
  */
 #include "audit_util.h"
 
-#define LOGGERFILEPREFIX "/tmp/audit"
+#define LOGGERFILEPREFIX "/mnt/efsifxpg/audit"
 
 typedef struct chains {
   mi_integer seq;
@@ -49,7 +49,8 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
   cbfunc(MI_EVENT_TYPE event_type, MI_CONNECTION *conn,
 				  void *event_data, void *user_data);
 /*--------------------------------------------------------------*/
-void do_auditing2(MI_FPARAM *fp)
+
+void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
 {
   MI_CONNECTION *sessionConnection;
   MI_CALLBACK_HANDLE *cbhandle;
@@ -58,6 +59,13 @@ void do_auditing2(MI_FPARAM *fp)
   chains_t *curChain;
   mi_string buffer[32], *pdata;
 
+  DPRINTF("logger", 80, ("connected user %s", mi_lvarchar_to_string(sessionusername)));
+  printf("operating user %s welcome test \n",mi_lvarchar_to_string(sessionusername));
+  if (strcmp(mi_lvarchar_to_string(sessionusername), "ifxsyncuser") == 0)
+  {
+    printf("automated user. skipping trigger\n");
+    return;
+  }
   DPRINTF("logger", 80, ("Entering do_auditing2()"));
   /* Get the trigger event and make sure we are in a trigger */
   trigger_operation = mi_trigger_event();
@@ -172,15 +180,23 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
 			if (pcur == NULL) {
 DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
             } else {
-			  sprintf(buffer, "%s%d_%d.json", LOGGERFILEPREFIX,
-					pmem->sessionId, pcur->seq);
+                          char filetime_buffer[30];
+                          struct timeval file_tv;
+                          time_t file_curtime;
+                          gettimeofday(&file_tv, NULL); 
+                          file_curtime=file_tv.tv_sec;
+                          strftime(filetime_buffer,30,"%m-%d-%Y_%T.",localtime(&file_curtime));
+                          printf("%s%ld\n",filetime_buffer,file_tv.tv_usec);
+			  sprintf(buffer, "%s%d_%d_%s%ld.json", LOGGERFILEPREFIX,
+					pmem->sessionId, pcur->seq,filetime_buffer,file_tv.tv_usec);
 DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
 			  fd = mi_file_open(buffer, O_WRONLY | O_APPEND | O_CREAT, 0644);
 			  if (pcur->json == NULL) {
 DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
               } else {
 			  ret = mi_file_write(fd, pcur->json, strlen(pcur->json));
-        int res=posttopic(pcur->json);
+        int res=posttopic(pcur->json, "http://ifxpg-migrator.topcoder-dev.com/fileevents");
+        int res1=posttopic(pcur->json, "http://ifxpg-migrator.topcoder-dev.com/kafkaevents");
 			  mi_file_close(fd);
 			  mi_free(pcur->json);
 			  }

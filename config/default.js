@@ -8,6 +8,7 @@ module.exports = {
     PARTITION: 0
   },
   RETRY_COUNTER: 3,
+  KAFKA_REPOST_COUNT: 5,
   topic_error: {
     NAME: 'db.ifxpgmigrate.error',
     PARTITION: 0,
@@ -41,5 +42,29 @@ module.exports = {
     USER: process.env.IFX_USER || 'informix',
     PASSWORD: process.env.IFX_PASSWORD || '1nf0rm1x',
     POOL_MAX_SIZE: parseInt(process.env.IFX_POOL_MAX_SIZE || '10')
+  },
+  DYNAMODB: {
+    REGION: process.env.AWS_REGION || 'us-east-1',
+    TABLENAME: process.env.DYNAMODB_TABLENAME || 'ifxpg-migrator'
+  },
+  SLACK: {
+    URL: process.env.SLACKURL || 'us-east-1',
+    SLACKCHANNEL: process.env.SLACKCHANNEL || 'ifxpg-migrator',
+    SLACKNOTIFY:  process.env.SLACKNOTIFY || 'false'
+  },
+  EXEMPTIONDATATYPE : {
+    MONEY: {
+      testdb_testtable5 : 'dmoney'
+    }
+  },
+  RECONCILER : 
+  {
+    RECONCILER_ELAPSE_TIME : 600000,
+    RECONCILER_IGNORE_STATUS : 'PostgresUpdated',
+    RECONCILER_START_ELAPSE_TIME : 1,
+    RECONCILER_DIFF_PERIOD : 10,
+    RECONCILER_DURATION_TYPE : 'm',
+    RECONCILER_RETRY_COUNT : 1,
+    RECONCILER_POST_URL : 'http://ifxpg-migrator.topcoder-dev.com/kafkaevents'
   }  
 }

@@ -3,11 +3,10 @@
  */
 module.exports = (sequelize, DataTypes) =>
   sequelize.define('consumer_log', {
-    SEQ_ID: { type: DataTypes.INTEGER, primaryKey: true },
-    TOPICNAME: { type: DataTypes.STRING, allowNull: false },
-    SCHEMA_NAME:{ type: DataTypes.STRING, allowNull: false },
-    DESTINATION:{ type: DataTypes.STRING, allowNull: false },
-    CONSUMAER_QUERY: { type: DataTypes.JSON, allowNull: false }
+    SEQ_ID: { type: DataTypes.STRING, primaryKey: true },
+    CONSUMER_UPDATE_RETRY_COUNT:{ type: DataTypes.INTEGER ,defaultValue: 0, primaryKey: true },    
+    CONSUMER_PAYLOAD: { type: DataTypes.JSON, allowNull: false },
+    CONSUMER_FAILURE_LOG: { type: DataTypes.JSON }
   }, {
     tableName: 'consumer_log',
     paranoid: true,

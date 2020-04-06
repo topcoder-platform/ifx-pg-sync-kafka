@@ -3,11 +3,20 @@ require('express-async-errors');
 const Kafka = require('no-kafka')
 const config = require('config')
 const bodyParser = require('body-parser')
-const { producerLog, pAuditLog } = require('./api/audit')
+const {
+  create_producer_app_log,
+  producerpost_success_log,
+  producerpost_failure_log
+} = require('./common/app_log')
+const pushToKafka = require('./api/pushToKafka')
+const { 
+  postMessage,
+  validateMsgPosted
+} = require('./api/postslackinfo')
 
 const app = express()
-app.use(bodyParser.json());       // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+app.use(bodyParser.json()); // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
   extended: true
 }));
 app.get('/', function (req, res) {
@@ -15,25 +24,18 @@ app.get('/', function (req, res) {
 })
 
 
-app.post('/events', async (req, res, next) => {
+app.post('/kafkaevents', async (req, res, next) => {
   const payload = req.body
-  let seqID = 0
+  let seqID = payload.TIME + "_" + payload.TABLENAME
+  //retry_count  = payload['RETRY_COUNT'] ? payload['RETRY_COUNT'] : 0
+  //let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
+  let producer_retry_count
 
-  //add producer_log
-  await producerLog({
-    TOPICNAME: config.topic.NAME,
-    SOURCE: config.SOURCE,
-    SCHEMA_NAME: payload.SCHEMANAME,
-    TABLE_NAME: payload.TABLENAME,
-    PRODUCER_PAYLOAD: payload.DATA,
-    OPERATION: payload.OPERATION
-  }).then((log) => seqID = log.SEQ_ID)
-
-  if(!seqID){
-    console.log('ProducerLog Failure')
-    return
+  try {
+    await create_producer_app_log(payload,"PayloadReceived")
+  } catch (error) {
+    console.log(error)
   }
-  console.log('ProducerLog Success')
 
   //send kafka message
   let kafka_error
@@ -41,71 +43,36 @@ app.post('/events', async (req, res, next) => {
     ...payload,
     SEQ_ID: seqID
   }
-
-  await producer.send({
-    topic: config.topic.NAME,
-    partition: config.topic.PARTITION,
-    message: {
-      value : JSON.stringify(msgValue)
-    }
-  },{
-    retries: {
-      attempts: config.RETRY_COUNTER,
-      delay: {
-        min: 100,
-        max: 300
-      }
-    }
-  }).then(function (result) {
-      if(result[0].error)
-        kafka_error = result[0].error
-  })
-
+  kafka_error = await pushToKafka(producer, config.topic.NAME, msgValue)
   //add auditlog
-  if(!kafka_error){
-  await pAuditLog({
-    SEQ_ID: seqID,
-    PRODUCER_PUBLISH_STATUS: 'success',
-    PRODUCER_PUBLISH_TIME: Date.now()
-  }).then((log) => console.log('Send Success'))
-  res.send('done')
-  return
+  if (!kafka_error) {
+    await producerpost_success_log(payload, "PayloadPosted")
+    res.send('done')
+    return
   }
 
   //add auditlog
-  await pAuditLog({
-    SEQ_ID: seqID,
-    PRODUCER_PUBLISH_STATUS: 'failure',
-    PRODUCER_FAILURE_LOG: kafka_error,
-    PRODUCER_PUBLISH_TIME: Date.now()
-  }).then((log) => console.log('Send Failure'))
-
+  await producerpost_failure_log(payload,kafka_error,'PayloadPostFailed')
+  
   msgValue = {
     ...kafka_error,
     SEQ_ID: seqID,
-    recipients: config.topic_error.EMAIL
+    recipients: config.topic_error.EMAIL,
+    msgoriginator: "producer"
+  }
+  //send error message to kafka
+  kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
+  if (!kafka_error) {
+    console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
+  } else {
+    if (config.SLACK.SLACKNOTIFY === 'true') {
+       await postMessage("producer post meesage failed- But usable to post the error in kafka error topic due to errors",  async (response) => {
+           await validateMsgPosted(response.statusCode,response.statusMessage)
+      });
+    }
   }
 
-  //send error message to kafka
-  await producer.send({
-    topic: config.topic_error.NAME,
-    partition: config.topic_error.PARTITION,
-    message: {
-      value : JSON.stringify(msgValue),
-    }
-    },{
-      retries: {
-        attempts: config.RETRY_COUNTER,
-        delay: {
-          min: 100,
-          max: 300
-        }
-      }
-    }).then(function (result) {
-      console.log(result)
-    })
-
-    res.send('error')
+  res.send('error')
 
 })
 
@@ -113,11 +80,13 @@ app.post('/events', async (req, res, next) => {
 const producer = new Kafka.Producer()
 
 producer.init().then(function () {
-  console.log('connected to local kafka server on port 9092 ...');
+    console.log('connected to local kafka server on port 9092 ...');
 
-  // start the server
-  app.listen(config.PORT);
-  console.log('Server started! At http://localhost:' + config.PORT);
+    // start the server
+    app.listen(config.PORT);
+    console.log('Server started! At http://localhost:' + config.PORT);
 
-} //end producer init
-).catch(e => { console.log('Error : ', e) });
+  } //end producer init
+).catch(e => {
+  console.log('Error : ', e)
+});

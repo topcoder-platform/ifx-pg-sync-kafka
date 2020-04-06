@@ -65,10 +65,26 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
     MI_TYPE_DESC* dsc = mi_type_typedesc(conn, tid);
     mi_string* srcType = mi_type_typename(dsc);
     DPRINTF("logger",95,("-- typeName=%s --",srcType));
+    printf("-- typeName=%s --",srcType);
     if ((strcmp("blob",   srcType) == 0) || (strcmp("clob",   srcType) == 0) || (strcmp("text",   srcType) == 0) || (strcmp("byte",   srcType) == 0)) {
             return("unsupportedtype");
      }
    else{ 
+   if (strcmp("date",   srcType) == 0) {
+     return (mi_date_to_string((mi_date *)datum));
+   }
+   if (strcmp("datetime",   srcType) == 0) {
+    return (mi_datetime_to_string((mi_datetime *)datum));
+   }
+   if ((strcmp("integer",   srcType) == 0) ||
+                 (strcmp("bigint",    srcType) == 0) ||
+                 (strcmp("int8",      srcType) == 0) ||
+                 (strcmp("serial",    srcType) == 0) ||
+                 (strcmp("bigserial", srcType) == 0) ||
+                 (strcmp("serial8",   srcType) == 0) ||
+                 (strcmp("smallint",  srcType) == 0)) {
+    collen = 30;
+   }
   fn = mi_cast_get(conn, tid, lvar_id,  &status);
   if (NULL == fn) {
     switch(status) {
@@ -95,8 +111,13 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
   tdesc = mi_type_typedesc(conn, typeid); 
   precision = mi_type_precision(tdesc);
 
+  printf("rputine read initiated \n");
+  printf("rputine read initiated %ld\n",collen);                   
   new_datum = mi_routine_exec(conn, fn, &ret, datum, collen, precision, fp);
+  printf("routine read completed \n");
   pbuf = mi_lvarchar_to_string(new_datum);
+  //pbuf = mi_date_to_string((mi_date *)datum);
+  //printf("\ndate data %s \n",pbuf);
   mi_routine_end(conn, fn); 
 	//return mi_type_typename(mi_type_typedesc(conn, my_type_id));
   }
@@ -137,6 +158,7 @@ mi_string *doInsertCN()
   //fixname(pdbname);
   sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);     
   posi = strlen(buffer);
+  printf("\"TABLENAME\": \"%s\", ", tabname);
   sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", tabname);
   posi = strlen(buffer);
   sprintf(&buffer[posi], "\"OPERATION\": \"INSERT\", ");       
@@ -160,7 +182,7 @@ DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
 	   sprintf(&buffer[posi], ", ");
 	   posi = strlen(buffer);
 	 }	
-         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, pcast);
+         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, escapecharjson(pcast));
           if (strcmp("unsupportedtype",   pcast) == 0)  {
             strcpy(uniquedatatype, "true");
           }  
@@ -310,7 +332,11 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
            sprintf(&buffer[posi], ", ");
            posi = strlen(buffer);
          }
-         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, pcast);
+         //printf("%s",pcast);
+  
+         //pcast = escapecharjson(pcast);
+         //printf("%s",pcast);
+         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, escapecharjson(pcast));
           if (strcmp("unsupportedtype",   pcast) == 0)  {
             strcpy(uniquedatatype, "true");
           }
@@ -422,7 +448,7 @@ mi_string *doUpdateCN()
       sprintf(&buffer[pbufLen], ", ");
       pbufLen = strlen(buffer);
     }
-    sprintf(&buffer[pbufLen], "\"%s\" : { \"old\" : \"%s\", \"new\" : \"%s\" }", poldcolname, pcast, pcast2);
+    sprintf(&buffer[pbufLen], "\"%s\" : { \"old\" : \"%s\", \"new\" : \"%s\" }", poldcolname, escapecharjson(pcast), escapecharjson(pcast2));
     if (strcmp("unsupportedtype",   pcast2) == 0)  {
             strcpy(uniquedatatype, "true");
       }
@@ -485,15 +511,17 @@ char* gettimestamp()
 /*--------------------------------------------------------------*/
 /* post topic base don condition*/
 
-int posttopic(char *jsondata)
+int posttopic(char *jsondata, char *posturl)
 {
-   char *postinfo = getenv("POSTTOPIC");
-   char *localurl= "http://host.docker.internal:8080/events";
+  // char *postinfo = getenv("POSTTOPIC");
+ //  char *fileeventsurl = "http://ifxpg-migrator.topcoder-dev.com/fileevents";
+ //  char *kafkaeventsurl = "http://ifxpg-migrator.topcoder-dev.com/kafkaevents";
+   //char *localurl= "http://host.docker.internal:8080/events";
    //char *localurl= "http://localhost:8080/events";
-   char *posturl = getenv("POSTURL");
+  /* char *posturl = getenv("POSTURL");
    if (!postinfo)
    {
-     printf("no post topic set true or false. defualt it will post topic");
+     printf("no post topic set true or false. defualt it will post topic \n");
     // return 0;
    }
    else
@@ -504,13 +532,16 @@ int posttopic(char *jsondata)
            return 0;
        }
     }
-                printf("posting topic");
+                printf("posting topic \n");
                  if (!posturl)
                     {
-                        posturl = localurl;
+                         posturl = fileeventsurl;
+                        //posturl = localurl;
                         //printf("PATH : %s\n",ap);
                         printf("no url provide in environment . So it is taking localurl");
                     }
+*/                    
+                    printf("posting topic to url %s \n", posturl);
                     CURL *hnd = curl_easy_init();
                     curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
                     curl_easy_setopt(hnd, CURLOPT_URL, posturl);
@@ -518,15 +549,73 @@ int posttopic(char *jsondata)
                     headers = curl_slist_append(headers, "cache-control: no-cache");
                     headers = curl_slist_append(headers, "Content-Type: application/json");
                     curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
-
                     curl_easy_setopt(hnd, CURLOPT_POSTFIELDS,jsondata);
-
                     CURLcode ret = curl_easy_perform(hnd);
                     if(ret != CURLE_OK)
+                       {
                         fprintf(stderr, "curl_easy_perform() failed: %s\n",
                                 curl_easy_strerror(ret));  
+                       }
+  /*                  curl_easy_setopt(hnd, CURLOPT_URL, kafkaeventsurl);
+                    if(ret != CURLE_OK)
+                       {
+                        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                                curl_easy_strerror(ret));  
+                       }                    
+    */
     return 0;
 }
 
 /*--------------------------------------------------------------*/
+char * escapecharjson( char *jsonvalue_org)
+{
+    char *jsonvalue_copy; // first copy the pointer to not change the original
+    char *escjsonvalue;
+    int posi = 0;
+    //char *p = jsonvalue_org;
+    //for (; *p != '\0'; p++) {}
+    //printf("length of string : %ld",(p - jsonvalue_org));
+    //escjsonvalue = (char *)malloc(10000);
+    escjsonvalue = (char *)calloc(10000, sizeof(char));
+    for (jsonvalue_copy = jsonvalue_org; *jsonvalue_copy != '\0'; jsonvalue_copy++) {
 
+           printf("%c:%d\n", *jsonvalue_copy,*jsonvalue_copy);
+			if (*jsonvalue_copy == '"') {
+				posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\\"") ;  
+			} else if (*jsonvalue_copy == '\t') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\t") ;
+			} else if (*jsonvalue_copy == '\f') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\f") ; 
+			} else if (*jsonvalue_copy == '\n') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\n") ;
+			} else if (*jsonvalue_copy == '\r') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\r") ;
+			} else if (*jsonvalue_copy == '\\') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\\\") ;
+			} else if (*jsonvalue_copy == '/') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\/") ; 
+			} else if (*jsonvalue_copy == '\b') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%s","\\b") ;  
+			} else if ('\x00' >= *jsonvalue_copy && *jsonvalue_copy <= '\x1f') {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "\\u%4x",(int)*jsonvalue_copy) ; 
+            } else {
+                posi = strlen(escjsonvalue);
+                sprintf(&escjsonvalue[posi], "%c",*jsonvalue_copy) ;  
+			}
+			
+        
+    }
+    //p=NULL;
+    jsonvalue_copy=NULL;
+    printf("%s", escjsonvalue);
+        return(escjsonvalue);
+    }
