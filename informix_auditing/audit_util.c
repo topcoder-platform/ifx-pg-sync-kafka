@@ -158,7 +158,7 @@ mi_string *doInsertCN()
   //fixname(pdbname);
   sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);     
   posi = strlen(buffer);
-  printf("\"TABLENAME\": \"%s\", ", tabname);
+  printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-INSERT-%s\" \n",pdbname,tabname,cdatetime);
   sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", tabname);
   posi = strlen(buffer);
   sprintf(&buffer[posi], "\"OPERATION\": \"INSERT\", ");       
@@ -182,7 +182,9 @@ DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
 	   sprintf(&buffer[posi], ", ");
 	   posi = strlen(buffer);
 	 }	
-         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, escapecharjson(pcast));
+         char *bufdatval = escapecharjson(pcast);
+         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, bufdatval);
+         free(bufdatval);
           if (strcmp("unsupportedtype",   pcast) == 0)  {
             strcpy(uniquedatatype, "true");
           }  
@@ -200,6 +202,7 @@ DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
   } else {
       sprintf(&buffer[posi], "},  \n \"uniquedatatype\" : \"false\" \n }");
   }
+    printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-INSERT-%s-Completed\" \n",pdbname,tabname,cdatetime);
   free(cdatetime);
  return(buffer);
 }
@@ -310,6 +313,7 @@ mi_string *doDeleteCN()
   sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);   
   posi = strlen(buffer);
   sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", ptabname);  
+  printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-DELETE-%s\" \n", pdbname,ptabname,cdatetime);
   posi = strlen(buffer);
   sprintf(&buffer[posi], "\"OPERATION\": \"DELETE\", ");       
   posi = strlen(buffer);
@@ -336,7 +340,9 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
   
          //pcast = escapecharjson(pcast);
          //printf("%s",pcast);
-         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, escapecharjson(pcast));
+         char *bufdatdelval = escapecharjson(pcast);
+         sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, bufdatdelval);
+         free(bufdatdelval)
           if (strcmp("unsupportedtype",   pcast) == 0)  {
             strcpy(uniquedatatype, "true");
           }
@@ -355,6 +361,7 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
   } else {
       sprintf(&buffer[posi], "},  \n \"uniquedatatype\" : \"false\" \n }");
   }
+   printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-DELETE-%s-Completed\" \n ", pdbname,ptabname,cdatetime);
  free(cdatetime); 
  return(buffer);
 }
@@ -406,7 +413,8 @@ mi_string *doUpdateCN()
   //fixname(pdbname);
   sprintf(&buffer[posi], "\"SCHEMANAME\": \"%s\", ", pdbname);  
   posi = strlen(buffer);
-  sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", ptabname);    
+  sprintf(&buffer[posi], "\"TABLENAME\": \"%s\", ", ptabname); 
+  printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-UPDATE-%s\" \n", pdbname,ptabname,cdatetime);     
   posi = strlen(buffer);
   sprintf(&buffer[posi], "\"OPERATION\": \"UPDATE\", ");       
   posi = strlen(buffer);
@@ -448,7 +456,11 @@ mi_string *doUpdateCN()
       sprintf(&buffer[pbufLen], ", ");
       pbufLen = strlen(buffer);
     }
-    sprintf(&buffer[pbufLen], "\"%s\" : { \"old\" : \"%s\", \"new\" : \"%s\" }", poldcolname, escapecharjson(pcast), escapecharjson(pcast2));
+    char *bufdatoldval = escapecharjson(pcast);
+    char *bufdatnewval = escapecharjson(pcast2);
+    sprintf(&buffer[pbufLen], "\"%s\" : { \"old\" : \"%s\", \"new\" : \"%s\" }", poldcolname, bufdatoldval, bufdatnewval);
+    free(bufdatoldval);
+    free(bufdatnewval);
     if (strcmp("unsupportedtype",   pcast2) == 0)  {
             strcpy(uniquedatatype, "true");
       }
@@ -464,6 +476,7 @@ mi_string *doUpdateCN()
       sprintf(&buffer[pbufLen], "},  \n \"uniquedatatype\" : \"false\" \n }");
   }
   DPRINTF("logger", 90, ("Exiting doUpdateCN()"));
+  printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-UPDATE-%s-Completed\" \n ", pdbname,ptabname,cdatetime);     
   free(cdatetime);
   return(buffer);
 }
@@ -579,7 +592,7 @@ char * escapecharjson( char *jsonvalue_org)
     escjsonvalue = (char *)calloc(10000, sizeof(char));
     for (jsonvalue_copy = jsonvalue_org; *jsonvalue_copy != '\0'; jsonvalue_copy++) {
 
-           printf("%c:%d\n", *jsonvalue_copy,*jsonvalue_copy);
+           //printf("%c:%d\n", *jsonvalue_copy,*jsonvalue_copy);
 			if (*jsonvalue_copy == '"') {
 				posi = strlen(escjsonvalue);
                 sprintf(&escjsonvalue[posi], "%s","\\\"") ;  
@@ -616,6 +629,6 @@ char * escapecharjson( char *jsonvalue_org)
     }
     //p=NULL;
     jsonvalue_copy=NULL;
-    printf("%s", escjsonvalue);
+    //printf("%s", escjsonvalue);
         return(escjsonvalue);
     }
