@@ -67,6 +67,7 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
     DPRINTF("logger",95,("-- typeName=%s --",srcType));
     printf("-- typeName=%s --",srcType);
     if ((strcmp("blob",   srcType) == 0) || (strcmp("clob",   srcType) == 0) || (strcmp("text",   srcType) == 0) || (strcmp("byte",   srcType) == 0)) {
+            printf("skiping data read\n");
             return("unsupportedtype");
      }
    else{ 
@@ -111,8 +112,8 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
   tdesc = mi_type_typedesc(conn, typeid); 
   precision = mi_type_precision(tdesc);
 
-  printf("rputine read initiated \n");
-  printf("rputine read initiated %ld\n",collen);                   
+  //printf("rputine read initiated \n");
+  //printf("rputine read initiated %ld\n",collen);                   
   new_datum = mi_routine_exec(conn, fn, &ret, datum, collen, precision, fp);
   printf("routine read completed \n");
   pbuf = mi_lvarchar_to_string(new_datum);
