@@ -342,7 +342,7 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
          //printf("%s",pcast);
          char *bufdatdelval = escapecharjson(pcast);
          sprintf(&buffer[posi], "\"%s\" : \"%s\"", pcolname, bufdatdelval);
-         free(bufdatdelval)
+         free(bufdatdelval);
           if (strcmp("unsupportedtype",   pcast) == 0)  {
             strcpy(uniquedatatype, "true");
           }
