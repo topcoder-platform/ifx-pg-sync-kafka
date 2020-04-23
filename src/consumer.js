@@ -3,7 +3,16 @@ const Promise = require('bluebird');
 const config = require('config');
 const logger = require('./common/logger');
 const healthcheck = require('topcoder-healthcheck-dropin');
-const consumer = new Kafka.GroupConsumer();
+const options = {
+  groupId: config.KAFKA_GROUP_ID,
+  connectionString: config.KAFKA_URL,
+  ssl: {
+    cert: config.KAFKA_CLIENT_CERT,
+    key: config.KAFKA_CLIENT_CERT_KEY
+  }
+};
+
+const consumer = new Kafka.GroupConsumer(options);
 const {
   create_consumer_app_log,
   consumerpg_success_log,

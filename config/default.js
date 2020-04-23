@@ -9,6 +9,11 @@ module.exports = {
   },
   RETRY_COUNTER: 3,
   KAFKA_REPOST_COUNT: 5,
+  KAFKA_URL: process.env.KAFKA_URL,
+  KAFKA_GROUP_ID: process.env.KAFKA_GROUP_ID || 'ifx-pg-consumer',
+  KAFKA_CLIENT_CERT: process.env.KAFKA_CLIENT_CERT ? process.env.KAFKA_CLIENT_CERT.replace('\\n', '\n') : null,
+  KAFKA_CLIENT_CERT_KEY: process.env.KAFKA_CLIENT_CERT_KEY ?
+    process.env.KAFKA_CLIENT_CERT_KEY.replace('\\n', '\n') : null,
   topic_error: {
     NAME: 'db.ifxpgmigrate.error',
     PARTITION: 0,
