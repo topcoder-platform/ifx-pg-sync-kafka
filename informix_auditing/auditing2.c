@@ -60,7 +60,7 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   mi_string buffer[32], *pdata;
 
   DPRINTF("logger", 80, ("connected user %s", mi_lvarchar_to_string(sessionusername)));
-  printf("operating user %s welcome test \n",mi_lvarchar_to_string(sessionusername));
+  printf("USER Triggered: %s\n",mi_lvarchar_to_string(sessionusername));
   if (strcmp(mi_lvarchar_to_string(sessionusername), "ifxsyncuser") == 0)
   {
     printf("automated user. skipping trigger\n");
@@ -72,14 +72,14 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   if (trigger_operation & MI_TRIGGER_NOT_IN_EVENT) {
     /* not in a trigger! generate an exception */
     mi_db_error_raise(NULL, MI_EXCEPTION, 
-      "do_auditing1() can only be called within a trigger!", NULL);
+      "do_auditing2() can only be called within a trigger!", NULL);
 	return;
   }
   /* Make sure this is in a FOR EACH type of trigger */
   if (0 == (trigger_operation & MI_TRIGGER_FOREACH_EVENT) ) {
     /* not in a for each trigger! generate an exception */
     mi_db_error_raise(NULL, MI_EXCEPTION, 
-      "do_auditing1() must be in a FOR EACH trigger operation", NULL);
+      "do_auditing2() must be in a FOR EACH trigger operation", NULL);
 	return;
   }
   /* keep only the SQL operation */

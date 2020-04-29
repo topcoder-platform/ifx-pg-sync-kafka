@@ -197,7 +197,7 @@ async function consumerpg_failure_log(payload, postgreErr) {
             CONSUMER_FAILURE_LOG: postgreErr
         }).then(log => console.log('Added Error in Consumer Log Table'))
         .catch(err => console.log(err))
-    console.log(`error-sync: consumer failed to update : "${postgreErr}"`)    
+    console.log(`error-sync: consumer failed to update :` + JSON.stringify(postgreErr))    
     //audit table update
 }
 // CONSUMER_PAYLOAD: { type: DataTypes.JSON, allowNull: false },    
