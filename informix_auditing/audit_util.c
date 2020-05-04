@@ -169,7 +169,8 @@ mi_string *doInsertCN()
   for (i = 0; i < colCount; i++) {
     /* get column name and type id */
     pcolname = mi_column_name(rd, i);
-DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
+    DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
+    printf("\n\"Reading TABLENAME-ColumnName\": \"%s-%s\" \n",tabname,pcolname);
     tid = mi_column_type_id(rd, i);
     switch(mi_value(row, i, &datum, &collen)) {
     /* we should do this test */
@@ -429,6 +430,7 @@ mi_string *doUpdateCN()
     if (j < colCountNew)
       pnewcolname = mi_column_name(rdNew, j);
     tid = mi_column_type_id(rdOld, i);
+    printf("\"Reading TABLENAME-ColumnName\": \"%s-%s\" \n",ptabname,pnewcolname);
     switch(mi_value(oldRow, i, &datum, &collen)) {
     /* we should do this test */
     case MI_NULL_VALUE:
@@ -517,8 +519,10 @@ char* gettimestamp()
   strftime(timebuffer,30,"%Y-%m-%dT%T.",localtime(&curtime));
   //printf("%s%ld\n",buffer,tv.tv_usec);
   sprintf(timedate,"%s%ldZ",timebuffer,tv.tv_usec);
+  printf("\nAllocating memory and strcopy before- getstimestamp\n");
   char *returnstr = malloc(strlen(timedate) + 1);
   strcpy(returnstr,timedate);
+  printf("\nAllocating memory and strcopy success- getstimestamp\n");
   //printf("%s",timedate);
   return returnstr;
 }
@@ -526,36 +530,8 @@ char* gettimestamp()
 /* post topic base don condition*/
 
 int posttopic(char *jsondata, char *posturl)
-{
-  // char *postinfo = getenv("POSTTOPIC");
- //  char *fileeventsurl = "http://ifxpg-migrator.topcoder-dev.com/fileevents";
- //  char *kafkaeventsurl = "http://ifxpg-migrator.topcoder-dev.com/kafkaevents";
-   //char *localurl= "http://host.docker.internal:8080/events";
-   //char *localurl= "http://localhost:8080/events";
-  /* char *posturl = getenv("POSTURL");
-   if (!postinfo)
-   {
-     printf("no post topic set true or false. defualt it will post topic \n");
-    // return 0;
-   }
-   else
-    {
-
-      if (strcmp(postinfo, "false") == 0)
-       {
-           return 0;
-       }
-    }
-                printf("posting topic \n");
-                 if (!posturl)
-                    {
-                         posturl = fileeventsurl;
-                        //posturl = localurl;
-                        //printf("PATH : %s\n",ap);
-                        printf("no url provide in environment . So it is taking localurl");
-                    }
-*/                    
-                    printf("posting topic to url %s \n", posturl);
+{                    
+                    printf("\nPosting topic to url %s \n", posturl);
                     CURL *hnd = curl_easy_init();
                     curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
                     curl_easy_setopt(hnd, CURLOPT_URL, posturl);
@@ -568,15 +544,9 @@ int posttopic(char *jsondata, char *posturl)
                     if(ret != CURLE_OK)
                        {
                         fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                                curl_easy_strerror(ret));  
+                        curl_easy_strerror(ret));  
                        }
-  /*                  curl_easy_setopt(hnd, CURLOPT_URL, kafkaeventsurl);
-                    if(ret != CURLE_OK)
-                       {
-                        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                                curl_easy_strerror(ret));  
-                       }                    
-    */
+                    curl_easy_cleanup(hnd);
     return 0;
 }
 

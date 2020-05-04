@@ -50,9 +50,9 @@ builddeploy_steps: &builddeploy_steps
             # # consumer deployment
             # rm -rf buildenvvar
             # ./unsetenv.sh
-            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-consumer-deployvar
-            source buildenvvar            
-            ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
+            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-consumer-deployvar
+            # source buildenvvar            
+            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
             # # without kafka dynamodb
             # rm -rf buildenvvar
             # ./unsetenv.sh
