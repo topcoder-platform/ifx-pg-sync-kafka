@@ -136,11 +136,18 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   if (pmem->gothandle == 0) {
 	  cbhandle = mi_register_callback(NULL, MI_EVENT_END_XACT, cbfunc,
 					  (void *)pmem, NULL);
-	  if (cbhandle == NULL)
+	  if (cbhandle == NULL) {
 		mi_db_error_raise(NULL, MI_EXCEPTION,
 						"Callback registration failed", NULL);
+                 }
+           else
+            {
+               mi_free(cbhandle);
+            }
       pmem->gothandle = 1;
   }
+  mi_free(pmem);
+  mi_free(pdata);
   DPRINTF("logger", 80, ("Exiting do_auditing2()"));
   return;
 }
