@@ -68,13 +68,19 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
     printf("-- typeName=%s --",srcType);
     if ((strcmp("blob",   srcType) == 0) || (strcmp("clob",   srcType) == 0) || (strcmp("text",   srcType) == 0) || (strcmp("byte",   srcType) == 0)) {
             printf("skiping data read\n");
+            mi_free(dsc);
+            mi_free(srcType);            
             return("unsupportedtype");
      }
    else{ 
    if (strcmp("date",   srcType) == 0) {
+     mi_free(dsc);
+     mi_free(srcType);     
      return (mi_date_to_string((mi_date *)datum));
    }
    if (strcmp("datetime",   srcType) == 0) {
+    mi_free(dsc);
+    mi_free(srcType);     
     return (mi_datetime_to_string((mi_datetime *)datum));
    }
    if ((strcmp("integer",   srcType) == 0) ||
@@ -122,7 +128,11 @@ mi_string *do_castl(MI_CONNECTION *conn, MI_DATUM *datum,
   mi_routine_end(conn, fn); 
 	//return mi_type_typename(mi_type_typedesc(conn, my_type_id));
   }
-	
+	mi_free(fp);
+  mi_free(dsc);
+  mi_free(srcType);
+  mi_free(typeid);
+  mi_free(tdesc);
   return(pbuf);
 }
 /*--------------------------------------------------------------*/
@@ -206,6 +216,15 @@ mi_string *doInsertCN()
   }
     printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-INSERT-%s-Completed\" \n",pdbname,tabname,cdatetime);
   free(cdatetime);
+  mi_free(row);
+  mi_free(tid);
+  mi_free(lvarTid);
+  mi_free(td);
+  mi_free(rd);
+  mi_free(ptabname);
+  mi_free(pcolname);
+  mi_free(pcast);
+  mi_free(pdbname);  
  return(buffer);
 }
 /*--------------------------------------------------------------*/
@@ -251,7 +270,7 @@ mi_string *doSelectCN()
   for (i = 0; i < colCount; i++) {
     /* get column name and type id */
     pcolname = mi_column_name(rd, i);
-DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
+    DPRINTF("logger", 90, ("insert: colname: (0x%x) [%s]", pcolname, pcolname));
     tid = mi_column_type_id(rd, i);
     switch(mi_value(row, i, &datum, &collen)) {
     /* we should do this test */
@@ -324,7 +343,7 @@ mi_string *doDeleteCN()
   for (i = 0; i < colCount; i++) {
     /* get column name and type id */
     pcolname = mi_column_name(rd, i);
-DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
+    DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
     tid = mi_column_type_id(rd, i);
     switch(mi_value(row, i, &datum, &collen)) {
     /* we should do this test */
@@ -364,7 +383,16 @@ DPRINTF("logger", 90, ("delete: colname: (0x%x) [%s]", pcolname, pcolname));
       sprintf(&buffer[posi], "},  \n \"uniquedatatype\" : \"false\" \n }");
   }
    printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-DELETE-%s-Completed\" \n ", pdbname,ptabname,cdatetime);
- free(cdatetime); 
+  free(cdatetime); 
+  mi_free(row);
+  mi_free(tid);
+  mi_free(lvarTid);
+  mi_free(td);
+  mi_free(rd);
+  mi_free(ptabname);
+  mi_free(pcolname);
+  mi_free(pcast);
+  mi_free(pdbname);
  return(buffer);
 }
 /*--------------------------------------------------------------*/
@@ -481,6 +509,19 @@ mi_string *doUpdateCN()
   DPRINTF("logger", 90, ("Exiting doUpdateCN()"));
   printf("\"DBNAME-TABLENAME-operation-TIME\": \"%s-%s-UPDATE-%s-Completed\" \n ", pdbname,ptabname,cdatetime);     
   free(cdatetime);
+  mi_free(oldRow);
+  mi_free(newRow);
+  mi_free(tid);
+  mi_free(lvarTid);
+  mi_free(td);
+  mi_free(rdOld);
+  mi_free(rdNew);
+  mi_free(ptabname);
+  mi_free(poldcolname);
+  mi_free(pnewcolname); 
+  mi_free(pcast);
+  mi_free(pcast2);
+  mi_free(pdbname);
   return(buffer);
 }
 /*--------------------------------------------------------------*/

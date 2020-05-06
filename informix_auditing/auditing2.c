@@ -185,7 +185,7 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
 			}
 			/* write the record out */
 			if (pcur == NULL) {
-DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
+        DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
             } else {
                           char filetime_buffer[30];
                           struct timeval file_tv;
@@ -195,11 +195,11 @@ DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
                           strftime(filetime_buffer,30,"%m-%d-%Y_%T.",localtime(&file_curtime));
                           printf("%s%ld\n",filetime_buffer,file_tv.tv_usec);
 			  sprintf(buffer, "%s%d_%d_%s%ld.json", LOGGERFILEPREFIX,
-					pmem->sessionId, pcur->seq,filetime_buffer,file_tv.tv_usec);
-DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
+				pmem->sessionId, pcur->seq,filetime_buffer,file_tv.tv_usec);
+        DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
 			  fd = mi_file_open(buffer, O_WRONLY | O_APPEND | O_CREAT, 0644);
 			  if (pcur->json == NULL) {
-DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
+        DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
               } else {
 			  ret = mi_file_write(fd, pcur->json, strlen(pcur->json));
         int res=posttopic(pcur->json, "http://ifxpg-migrator.topcoder-dev.com/fileevents");
@@ -243,6 +243,7 @@ DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
     DPRINTF("logger", 80, (buffer));
   }
   pmem->gothandle = 0;
+  mi_free(pmem);
   DPRINTF("logger", 80, ("Exiting cbfunc()"));
   return(MI_CB_CONTINUE);
 }
