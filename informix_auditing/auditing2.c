@@ -64,6 +64,7 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   if (strcmp(mi_lvarchar_to_string(sessionusername), "ifxsyncuser") == 0)
   {
     printf("automated user. skipping trigger\n");
+    mi_free(sessionusername);
     return;
   }
   DPRINTF("logger", 80, ("Entering do_auditing2()"));
@@ -148,6 +149,9 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   }
   mi_free(pmem);
   mi_free(pdata);
+  mi_free(sessionConnection);
+  mi_free(curChain);
+  mi_free(sessionusername);
   DPRINTF("logger", 80, ("Exiting do_auditing2()"));
   return;
 }
