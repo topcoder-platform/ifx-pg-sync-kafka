@@ -64,7 +64,6 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   if (strcmp(mi_lvarchar_to_string(sessionusername), "ifxsyncuser") == 0)
   {
     printf("automated user. skipping trigger\n");
-    mi_free(sessionusername);
     return;
   }
   DPRINTF("logger", 80, ("Entering do_auditing2()"));
@@ -137,21 +136,11 @@ void do_auditing2( mi_lvarchar *sessionusername, MI_FPARAM *fp)
   if (pmem->gothandle == 0) {
 	  cbhandle = mi_register_callback(NULL, MI_EVENT_END_XACT, cbfunc,
 					  (void *)pmem, NULL);
-	  if (cbhandle == NULL) {
+	  if (cbhandle == NULL)
 		mi_db_error_raise(NULL, MI_EXCEPTION,
 						"Callback registration failed", NULL);
-                 }
-           else
-            {
-               mi_free(cbhandle);
-            }
       pmem->gothandle = 1;
   }
-  mi_free(pmem);
-  mi_free(pdata);
-  mi_free(sessionConnection);
-  mi_free(curChain);
-  mi_free(sessionusername);
   DPRINTF("logger", 80, ("Exiting do_auditing2()"));
   return;
 }
@@ -189,7 +178,7 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
 			}
 			/* write the record out */
 			if (pcur == NULL) {
-        DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
+DPRINTF("logger", 80, ("cbfunc(): pcur is null"));
             } else {
                           char filetime_buffer[30];
                           struct timeval file_tv;
@@ -199,11 +188,11 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
                           strftime(filetime_buffer,30,"%m-%d-%Y_%T.",localtime(&file_curtime));
                           printf("%s%ld\n",filetime_buffer,file_tv.tv_usec);
 			  sprintf(buffer, "%s%d_%d_%s%ld.json", LOGGERFILEPREFIX,
-				pmem->sessionId, pcur->seq,filetime_buffer,file_tv.tv_usec);
-        DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
+					pmem->sessionId, pcur->seq,filetime_buffer,file_tv.tv_usec);
+DPRINTF("logger", 80, ("cbfunc(): about to open file %s", buffer));
 			  fd = mi_file_open(buffer, O_WRONLY | O_APPEND | O_CREAT, 0644);
 			  if (pcur->json == NULL) {
-        DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
+DPRINTF("logger", 80, ("cbfunc(): pcur->json is null"));
               } else {
 			  ret = mi_file_write(fd, pcur->json, strlen(pcur->json));
         int res=posttopic(pcur->json, "http://ifxpg-migrator.topcoder-dev.com/fileevents");
@@ -247,7 +236,6 @@ MI_CALLBACK_STATUS MI_PROC_CALLBACK
     DPRINTF("logger", 80, (buffer));
   }
   pmem->gothandle = 0;
-  mi_free(pmem);
   DPRINTF("logger", 80, ("Exiting cbfunc()"));
   return(MI_CB_CONTINUE);
 }
