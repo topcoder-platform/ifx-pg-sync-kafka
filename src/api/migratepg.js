@@ -12,17 +12,16 @@ async function migratepgInsert(dbpool, payload) {
   payload = payload.DATA
   try {
     //const client = await dbpool.connect();
-    console.log("db name : " +  dbname);
-    console.log("table name : " +  table);
+    console.log("db name : " + dbname);
+    console.log("table name : " + table);
 
-if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)) 
-{
-fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)
-console.log("Exemption File Name : " + fieldname);
-//payload[fieldname] = (payload.fieldname.toUpperCase == 'NULL') ? payload.fieldname:payload.fieldname.substr(1);
-payload[fieldname] = (payload[fieldname].toUpperCase == 'NULL') ? payload[fieldname]:payload[fieldname].substr(1);
-console.log(payload[fieldname])
-}
+    if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)) {
+      fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)
+      console.log("Exemption File Name : " + fieldname);
+      //payload[fieldname] = (payload.fieldname.toUpperCase == 'NULL') ? payload.fieldname:payload.fieldname.substr(1);
+      payload[fieldname] = (payload[fieldname].toUpperCase == 'NULL') ? payload[fieldname] : payload[fieldname].substr(1);
+      console.log(payload[fieldname])
+    }
     const client = dbpool;
     console.log("=========== pg insert without unique datatype ==============");
     const columnNames = Object.keys(payload)
@@ -34,15 +33,12 @@ console.log(payload[fieldname])
     sql = `insert into "${tablename}" (${columnNames.map(x => `"${x}"`).join(',')}) values(${paramSql})`;
     const values = [];
     columnNames.forEach((colName) => {
-      if (  payload[colName].toUpperCase() == 'NULL' )
-      {
-          values.push(null);
+      if (payload[colName].toUpperCase() == 'NULL') {
+        values.push(null);
+      } else {
+        values.push(payload[colName]);
       }
-      else
-      {
-          values.push(payload[colName]);
-      }
-    }); 
+    });
     //sql = `insert into "${table}" (\"${columnNames.join('\", \"')}\") values (${columnNames.map((k) => `'${payload[k]}'`).join(', ')});` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
     console.log("Executing query : " + sql);
     // await client.query(sql);
@@ -59,49 +55,48 @@ async function migratepgUpdate(dbpool, payload) {
   console.log(payload);
   const table = payload.TABLENAME
   const dbname = payload.SCHEMANAME
-  payload = payload.DATA  
+  payload = payload.DATA
   try {
     //const client = await dbpool.connect();
-    console.log("db name : " +  dbname);
-    console.log("table name : " +  table);
+    console.log("db name : " + dbname);
+    console.log("table name : " + table);
 
-if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)) 
-{
-fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)
-console.log("Exemption File Name : " + fieldname);
-//payload[fieldname] = (payload.fieldname.toUpperCase == 'NULL') ? payload.fieldname:payload.fieldname.substr(1);
-//payload[fieldname] = (payload[fieldname].toUpperCase == 'NULL') ? payload[fieldname]:payload[fieldname].substr(1);
-//console.log(payload[fieldname])
-payload[fieldname]['old'] = (payload[fieldname]['old'].toUpperCase == 'NULL') ? payload[fieldname]['old']:payload[fieldname]['old'].substr(1);
-console.log(payload[fieldname]['old'])
-payload[fieldname]['new'] = (payload[fieldname]['new'].toUpperCase == 'NULL') ? payload[fieldname]['new']:payload[fieldname]['new'].substr(1);
-console.log(payload[fieldname]['old'])
-}    
+    if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)) {
+      fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${table}`)
+      console.log("Exemption File Name : " + fieldname);
+      //payload[fieldname] = (payload.fieldname.toUpperCase == 'NULL') ? payload.fieldname:payload.fieldname.substr(1);
+      //payload[fieldname] = (payload[fieldname].toUpperCase == 'NULL') ? payload[fieldname]:payload[fieldname].substr(1);
+      //console.log(payload[fieldname])
+      payload[fieldname]['old'] = (payload[fieldname]['old'].toUpperCase == 'NULL') ? payload[fieldname]['old'] : payload[fieldname]['old'].substr(1);
+      console.log(payload[fieldname]['old'])
+      payload[fieldname]['new'] = (payload[fieldname]['new'].toUpperCase == 'NULL') ? payload[fieldname]['new'] : payload[fieldname]['new'].substr(1);
+      console.log(payload[fieldname]['old'])
+    }
     const client = dbpool;
     console.log("=========== pg update without unique datatype ==============");
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     var datatypeobj = new Object();
     const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
-    const sqlfetchdatatypevalues = [ schemaname , table ];
-    await client.query(sqlfetchdatatype, sqlfetchdatatypevalues ).then(res => {
+    const sqlfetchdatatypevalues = [schemaname, table];
+    await client.query(sqlfetchdatatype, sqlfetchdatatypevalues).then(res => {
       console.log("datatype fetched---------------------");
-   //   console.log(res);
-      const data = res.rows; 
-      data.forEach(row => datatypeobj[ row['column_name'] ]= row['udt_name'] ); 
-    })    
-//  console.log(datatypeobj['dmoney']);
+      //   console.log(res);
+      const data = res.rows;
+      data.forEach(row => datatypeobj[row['column_name']] = row['udt_name']);
+    })
+    //  console.log(datatypeobj['dmoney']);
     //Primary key retrival
     var datapk = [];
     //const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
     const sqlfetchdatapk = 'SELECT c.column_name, c.ordinal_position FROM information_schema.key_column_usage AS c LEFT JOIN information_schema.table_constraints AS t ON t.constraint_name = c.constraint_name WHERE t.constraint_schema=$1 AND t.table_name = $2 AND t.constraint_type = $3';
-    const sqlfetchdatapkvalues = [ schemaname , table , 'PRIMARY KEY' ];
-    await client.query(sqlfetchdatapk, sqlfetchdatapkvalues ).then(res => {
+    const sqlfetchdatapkvalues = [schemaname, table, 'PRIMARY KEY'];
+    await client.query(sqlfetchdatapk, sqlfetchdatapkvalues).then(res => {
       console.log("primary fetched---------------------");
       //console.log(res);
-      const data = res.rows; 
-      data.forEach(row =>  datapk.push(row['column_name']) ); 
-    }) 
+      const data = res.rows;
+      data.forEach(row => datapk.push(row['column_name']));
+    })
     console.log
     console.log("BBuidling condtion")
     buffferoldcond = 0
@@ -109,56 +104,43 @@ console.log(payload[fieldname]['old'])
     var setdatastr = ""
     var oldconditionstr = ""
     columnNames.forEach((colName) => {
-     // console.log(colName);
+      // console.log(colName);
       colobj = payload[colName]
-     // if (buffferoldcond == 1) {
-     //     oldconditionstr = oldconditionstr + " and "
-     // } 
+      // if (buffferoldcond == 1) {
+      //     oldconditionstr = oldconditionstr + " and "
+      // } 
       if (bufferforsetdatastr == 1) {
-          setdatastr = setdatastr + " , "
-      } 
-      if ( (datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' )  && colobj['new'].toUpperCase() == 'NULL' )
-      {
-          setdatastr = setdatastr +  "\"" + colName + "\"= NULL "
+        setdatastr = setdatastr + " , "
       }
-      else 
-      {
-        setdatastr = setdatastr +   "\"" + colName + "\"= '" + colobj.new + "' "
-      }  
-  if (datapk.length == 0)
-  {
-      if (buffferoldcond == 1) {
+      if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date') && colobj['new'].toUpperCase() == 'NULL') {
+        setdatastr = setdatastr + "\"" + colName + "\"= NULL "
+      } else {
+        setdatastr = setdatastr + "\"" + colName + "\"= '" + colobj.new + "' "
+      }
+      if (datapk.length == 0) {
+        if (buffferoldcond == 1) {
           oldconditionstr = oldconditionstr + " and "
-      }   
-      if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['old'].toUpperCase() == 'NULL' )
-      {
-          oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
-      }
-      else 
-      {
-        oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
-      }
-      buffferoldcond = 1
-  }
-  else
-  {
-     if( datapk.includes(colName) )
-      {
-             if (buffferoldcond == 1) {
-                  oldconditionstr = oldconditionstr + " and "
-              } 
-              if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['old'].toUpperCase() == 'NULL' )
-              {
-                  oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
-              }
-              else 
-              {
-                oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
-              }
-              buffferoldcond = 1
-      }
+        }
+        if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date') && colobj['old'].toUpperCase() == 'NULL') {
+          oldconditionstr = oldconditionstr + "\"" + colName + "\" is NULL "
+        } else {
+          oldconditionstr = oldconditionstr + "\"" + colName + "\"= '" + colobj.old + "' "
+        }
+        buffferoldcond = 1
+      } else {
+        if (datapk.includes(colName)) {
+          if (buffferoldcond == 1) {
+            oldconditionstr = oldconditionstr + " and "
+          }
+          if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date') && colobj['old'].toUpperCase() == 'NULL') {
+            oldconditionstr = oldconditionstr + "\"" + colName + "\" is NULL "
+          } else {
+            oldconditionstr = oldconditionstr + "\"" + colName + "\"= '" + colobj.old + "' "
+          }
+          buffferoldcond = 1
+        }
 
-  }     
+      }
       // if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' ) && colobj['old'].toUpperCase() == 'NULL' )
       // {
       //    oldconditionstr = oldconditionstr  + "\"" + colName + "\" is NULL "
@@ -167,48 +149,45 @@ console.log(payload[fieldname]['old'])
       // {
       //   oldconditionstr = oldconditionstr +   "\"" + colName + "\"= '" + colobj.old + "' "
       // }
-       // buffferoldcond = 1
-        bufferforsetdatastr = 1
+      // buffferoldcond = 1
+      bufferforsetdatastr = 1
     });
     console.log(oldconditionstr);
     console.log(setdatastr);
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
-//    sql = `update ${table} set ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['new']}'`).join(', ')} where ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['old']}'`).join(' AND ')} ;` // "update <schema>:<table> set col_1=val_1, col_2=val_2, ... where primary_key_col=primary_key_val"
-  
-  // sql = `update "${table}" set ${columnNames.map(x => `"${x}"=$${x + 1}`).join(',')} where ${oldconditionstr} ;`
-  const values = [];
-  var updatestr = ""
-  counter = 1
-  buffferupcond=0
-  columnNames.forEach((colName) => {
-        colobj = payload[colName]
-        //if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['new'].toUpperCase() == 'NULL' )
-        if ( colobj['new'].toUpperCase() == 'NULL' )
-        {
-          values.push(null);
-        }
-        else 
-        {
-          values.push(colobj.new);
-        }        
-        //values.push(colobj.new);
-        if (buffferupcond == 1) {
-          updatestr = updatestr + " , "
-        }
-        updatestr = updatestr + "\"" + colName + "\"= \$" + counter + " "
-        buffferupcond = 1
-        counter = counter + 1
-  }); 
- 
-  sql = `update "${table}" set ${updatestr} where ${oldconditionstr} ;`
-  //  sql = `update "${table}" set ${setdatastr} where ${oldconditionstr} ;`
-    console.log("sqlstring .............................."); 
+    //    sql = `update ${table} set ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['new']}'`).join(', ')} where ${Object.keys(payload).map((key) => `\"${key}\"='${payload[key]['old']}'`).join(' AND ')} ;` // "update <schema>:<table> set col_1=val_1, col_2=val_2, ... where primary_key_col=primary_key_val"
+
+    // sql = `update "${table}" set ${columnNames.map(x => `"${x}"=$${x + 1}`).join(',')} where ${oldconditionstr} ;`
+    const values = [];
+    var updatestr = ""
+    counter = 1
+    buffferupcond = 0
+    columnNames.forEach((colName) => {
+      colobj = payload[colName]
+      //if ( ( datatypeobj[colName] == 'timestamp'  || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && colobj['new'].toUpperCase() == 'NULL' )
+      if (colobj['new'].toUpperCase() == 'NULL') {
+        values.push(null);
+      } else {
+        values.push(colobj.new);
+      }
+      //values.push(colobj.new);
+      if (buffferupcond == 1) {
+        updatestr = updatestr + " , "
+      }
+      updatestr = updatestr + "\"" + colName + "\"= \$" + counter + " "
+      buffferupcond = 1
+      counter = counter + 1
+    });
+
+    sql = `update "${table}" set ${updatestr} where ${oldconditionstr} ;`
+    //  sql = `update "${table}" set ${setdatastr} where ${oldconditionstr} ;`
+    console.log("sqlstring ..............................");
     console.log(sql);
-    
+
     //await client.query(sql);
-    await client.query(sql,values);
+    await client.query(sql, values);
     //await client.release(true);
     console.log(`end connection of postgres for database`);
   } catch (e) {
@@ -224,7 +203,7 @@ async function migratepgDelete(dbpool, payload) {
   const tablename = payload.TABLENAME
   const dbname = payload.SCHEMANAME
   columns = payload.DATA
-  payload = payload.DATA  
+  payload = payload.DATA
   try {
 
     //const client = await dbpool.connect();
@@ -252,37 +231,36 @@ async function migratepgDelete(dbpool, payload) {
       //console.log(res);
       const data = res.rows;
       data.forEach(row => datapk.push(row['column_name']));
-    })    
+    })
 
     var conditionstr = ""
-    bufffercond = 0  
+    bufffercond = 0
     columnNames.forEach((colName) => {
-      if (datapk.length == 0)
-      {
+      if (datapk.length == 0) {
         if (bufffercond == 1) {
           conditionstr = conditionstr + " and "
         }
-        if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && columns[colName].toUpperCase() == 'NULL') {
+        if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date') && columns[colName].toUpperCase() == 'NULL') {
           conditionstr = conditionstr + tablename + "." + colName + " is NULL "
         } else {
           conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
         }
-        bufffercond = 1    
+        bufffercond = 1
       } else {
 
-          if (datapk.includes(colName)) {
-            if (bufffercond == 1) {
-              conditionstr = conditionstr + " and "
-            }
-            if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date' ) && columns[colName].toUpperCase() == 'NULL') {
-              conditionstr = conditionstr + tablename + "." + colName + " is NULL "
-            } else {
-              conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
-            }
-            bufffercond = 1
-          }      
-        
-    
+        if (datapk.includes(colName)) {
+          if (bufffercond == 1) {
+            conditionstr = conditionstr + " and "
+          }
+          if ((datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'numeric' || datatypeobj[colName] == 'date') && columns[colName].toUpperCase() == 'NULL') {
+            conditionstr = conditionstr + tablename + "." + colName + " is NULL "
+          } else {
+            conditionstr = conditionstr + tablename + "." + colName + "= '" + columns[colName] + "' "
+          }
+          bufffercond = 1
+        }
+
+
       }
     });
     sql = `SET search_path TO ${schemaname};`;
