@@ -437,8 +437,11 @@ async function db_datavalues_from_update_datapayload(columnNames, payload) {
 }
 async function hextoutf_insertpayload(columnNames, datatypeobj, payload) {
     try {
-
+        console.log(`payload : ${payload}` +  JSON.stringify(payload))
+        console.log(`columnNames : ${columnNames}` )
+        console.log(`datatypeobj : ${datatypeobj}`)
         columnNames.forEach((colName) => {
+            console.log(`colName : ${colName}`)
             if (payload[colName] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName].toUpperCase() != 'NULL') {
                     if (checkdataishex(payload[colName])) {
