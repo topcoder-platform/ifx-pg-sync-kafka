@@ -385,7 +385,7 @@ async function db_datavalues_from_fetched_row(columnNames, row, dbname, tablenam
                     row[colName] = row[colName].substr(1)
                 }
                 if ( datatypeobj[colName] == 'varchar' ) {
-                    if (await checkdataishex(row[colName])) {
+                    if (checkdataishex(row[colName])) {
                         row[colName] = await converthextoutf(row[colName])
                     }
                 }
@@ -441,7 +441,7 @@ async function hextoutf_insertpayload(columnNames, datatypeobj, payload) {
             console.log(`colName : ${colName}`)
             if (payload[colName] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName].toUpperCase() != 'NULL') {
-                    if (await checkdataishex(payload[colName])) {
+                    if (checkdataishex(payload[colName])) {
                         payload[colName] = await converthextoutf(payload[colName])
                     }
                 }
@@ -460,14 +460,14 @@ async function hextoutf_updatepayload(columnNames, datatypeobj, payload) {
             payload[colName]['old']
             if (payload[colName]['old'] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName]['old'].toUpperCase() != 'NULL') {
-                    if (await checkdataishex(payload[colName]['old'])) {
+                    if (checkdataishex(payload[colName]['old'])) {
                         payload[colName]['old'] =await converthextoutf(payload[colName]['old'])
                     }
                 }
             }
             if (payload[colName]['new'] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName]['new'].toUpperCase() != 'NULL') {
-                    if (await checkdataishex(payload[colName]['new'])) {
+                    if (checkdataishex(payload[colName]['new'])) {
                         payload[colName]['new'] = await converthextoutf(payload[colName]['new'])
                     }
                 }
