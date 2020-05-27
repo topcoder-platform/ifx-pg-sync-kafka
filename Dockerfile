@@ -8,11 +8,11 @@ RUN sed -i '/jessie-updates/d' /etc/apt/sources.list
 RUN apt-get -qq update && apt-get -qq install -y \
    wget gcc g++ make xz-utils python2.7 git curl
 
-#RUN wget -q -O node8.tar.xz https://nodejs.org/dist/v8.11.3/node-v8.11.3-linux-x64.tar.xz \
-#   && tar xfJ node8.tar.xz && rm -rf node8.tar.xz
+RUN wget -q -O node8.tar.xz https://nodejs.org/dist/v8.11.3/node-v8.11.3-linux-x64.tar.xz \
+   && tar xfJ node8.tar.xz && rm -rf node8.tar.xz
 
-RUN wget -q -O node11.tar.xz https://nodejs.org/dist/v11.15.0/node-v11.15.0-linux-x64.tar.xz \
-   && tar xfJ node11.tar.xz && rm -rf node11.tar.xz
+# RUN wget -q -O node11.tar.xz https://nodejs.org/dist/v11.15.0/node-v11.15.0-linux-x64.tar.xz \
+#    && tar xfJ node11.tar.xz && rm -rf node11.tar.xz
 
 ENV SERVERNAME=$servername
 ENV INFORMIXDIR /opt/IBM/informix
@@ -31,7 +31,7 @@ RUN echo "informixoltp_tcp        onsoctcp        ${SERVERNAME:-informix}       
   > ${INFORMIXDIR}/etc/sqlhosts.informixoltp_tcp
 
 
-ENV PATH /home/informix/node-v11.15.0-linux-x64/bin:${INFORMIXDIR}/bin:${INFORMIXDIR}/lib:${INFORMIXDIR}/lib/esql:${PATH}
+ENV PATH /home/informix/node-v8.11.3-linux-x64/bin:${INFORMIXDIR}/bin:${INFORMIXDIR}/lib:${INFORMIXDIR}/lib/esql:${PATH}
 ENV LD_LIBRARY_PATH ${INFORMIXDIR}/lib:${INFORMIXDIR}/lib/esql:${INFORMIXDIR}/lib/cli
 ENV INFORMIXSQLHOSTS ${INFORMIXDIR}/etc/sqlhosts.informixoltp_tcp
 ENV USER root

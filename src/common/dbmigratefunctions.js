@@ -1,5 +1,5 @@
 const config = require('config');
-
+const TextDecoder = require('util').TextDecoder;
 async function pgfetchdatatype(client, schemaname, tablename) {
     try {
         console.log("retriving data type ------")

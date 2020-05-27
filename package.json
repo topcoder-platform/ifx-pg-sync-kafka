@@ -34,7 +34,8 @@
     "url": "latest",
     "https": "latest",
     "nodemon": "latest",
-    "topcoder-healthcheck-dropin": "^1.0.3"
+    "topcoder-healthcheck-dropin": "^1.0.3",
+    "util": "latest"
   },
   "devDependencies": {
     "chai": "^4.2.0",
