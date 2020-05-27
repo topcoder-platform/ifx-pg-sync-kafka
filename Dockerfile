@@ -44,7 +44,7 @@ RUN mkdir /ifxpg-nodeserver
 COPY . /ifxpg-nodeserver
 
 WORKDIR /ifxpg-nodeserver
-RUN rm -rf node_modules && npm install --unsafe-perm
+RUN rm -rf node_modules && npm install --unsafe-perm && npm rebuild
 
 # ENTRYPOINT [ "/bin/bash" ]
 ENTRYPOINT [ "npm","run" ]
