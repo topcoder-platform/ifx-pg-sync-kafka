@@ -22,7 +22,7 @@
     "no-kafka": "^3.4.3",
     "pg": "^7.12.1",
     "rebuild": "^0.1.2",
-    "ifxnjs": "latest",
+    "ifxnjs": "^8.0.1",
     "q": "^1.5.1",
     "bluebird": "^3.5.1",
     "sequelize": "^5.19.0",
