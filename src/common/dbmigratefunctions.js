@@ -378,13 +378,13 @@ async function db_datavalues_from_fetched_row(columnNames, row, dbname, tablenam
         if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${tablename}`)) {
             fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${tablename}`)
         }
-        columnNames.forEach((colName) => {
+        await Promise.all(columnNames.map(async (colName) => {
             if (row[colName]) {
                 //Exemption function need to be integrated
                 if (fieldname == colName) {
                     row[colName] = row[colName].substr(1)
                 }
-                if ( datatypeobj[colName] == 'varchar' ) {
+                if (datatypeobj[colName] == 'varchar') {
                     if (checkdataishex(row[colName])) {
                         row[colName] = await converthextoutf(row[colName])
                     }
@@ -398,7 +398,7 @@ async function db_datavalues_from_fetched_row(columnNames, row, dbname, tablenam
             } else {
                 values.push(row[colName]);
             }
-        });
+        }));
         return values;
     } catch (err) {
         throw "db_datavalues_from_fetched_row : " + err
@@ -437,7 +437,7 @@ async function db_datavalues_from_update_datapayload(columnNames, payload) {
 }
 async function hextoutf_insertpayload(columnNames, datatypeobj, payload) {
     try {
-        columnNames.forEach((colName) => {
+        await Promise.all(columnNames.map(async (colName) => {
             console.log(`colName : ${colName}`)
             if (payload[colName] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName].toUpperCase() != 'NULL') {
@@ -446,7 +446,7 @@ async function hextoutf_insertpayload(columnNames, datatypeobj, payload) {
                     }
                 }
             }
-        });
+        }));
         return payload;
     } catch (err) {
         throw "hextoutf_insertpayload : " + err
@@ -454,14 +454,12 @@ async function hextoutf_insertpayload(columnNames, datatypeobj, payload) {
 }
 async function hextoutf_updatepayload(columnNames, datatypeobj, payload) {
     try {
-        columnNames.forEach((colName) => {
+        await Promise.all(columnNames.map(async (colName) => {
             //colobj = payload[colName]
-            payload[colName]['new']
-            payload[colName]['old']
             if (payload[colName]['old'] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName]['old'].toUpperCase() != 'NULL') {
                     if (checkdataishex(payload[colName]['old'])) {
-                        payload[colName]['old'] =await converthextoutf(payload[colName]['old'])
+                        payload[colName]['old'] = await converthextoutf(payload[colName]['old'])
                     }
                 }
             }
@@ -473,7 +471,7 @@ async function hextoutf_updatepayload(columnNames, datatypeobj, payload) {
                 }
             }
 
-        });
+        }));
         return payload;
     } catch (err) {
         throw "hextoutf_updatepayload : " + err
