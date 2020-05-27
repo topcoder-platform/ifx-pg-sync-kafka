@@ -31,7 +31,7 @@ RUN echo "informixoltp_tcp        onsoctcp        ${SERVERNAME:-informix}       
   > ${INFORMIXDIR}/etc/sqlhosts.informixoltp_tcp
 
 
-ENV PATH /home/informix/node-v8.11.3-linux-x64/bin:${INFORMIXDIR}/bin:${INFORMIXDIR}/lib:${INFORMIXDIR}/lib/esql:${PATH}
+ENV PATH /home/informix/node-v12.16.3-linux-x64/bin:${INFORMIXDIR}/bin:${INFORMIXDIR}/lib:${INFORMIXDIR}/lib/esql:${PATH}
 ENV LD_LIBRARY_PATH ${INFORMIXDIR}/lib:${INFORMIXDIR}/lib/esql:${INFORMIXDIR}/lib/cli
 ENV INFORMIXSQLHOSTS ${INFORMIXDIR}/etc/sqlhosts.informixoltp_tcp
 ENV USER root
