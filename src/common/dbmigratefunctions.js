@@ -385,8 +385,8 @@ async function db_datavalues_from_fetched_row(columnNames, row, dbname, tablenam
                     row[colName] = row[colName].substr(1)
                 }
                 if ( datatypeobj[colName] == 'varchar' ) {
-                    if (checkdataishex(row[colName])) {
-                        row[colName] = converthextoutf(row[colName])
+                    if (await checkdataishex(row[colName])) {
+                        row[colName] = await converthextoutf(row[colName])
                     }
                 }
                 if (isUtf8(row[colName]) || datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'date') {
@@ -437,15 +437,12 @@ async function db_datavalues_from_update_datapayload(columnNames, payload) {
 }
 async function hextoutf_insertpayload(columnNames, datatypeobj, payload) {
     try {
-        console.log(`payload : ${payload}` +  JSON.stringify(payload))
-        console.log(`columnNames : ${columnNames}` )
-        console.log(`datatypeobj : ${datatypeobj}`)
         columnNames.forEach((colName) => {
             console.log(`colName : ${colName}`)
             if (payload[colName] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName].toUpperCase() != 'NULL') {
-                    if (checkdataishex(payload[colName])) {
-                        payload[colName] = converthextoutf(payload[colName])
+                    if (await checkdataishex(payload[colName])) {
+                        payload[colName] = await converthextoutf(payload[colName])
                     }
                 }
             }
@@ -463,15 +460,15 @@ async function hextoutf_updatepayload(columnNames, datatypeobj, payload) {
             payload[colName]['old']
             if (payload[colName]['old'] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName]['old'].toUpperCase() != 'NULL') {
-                    if (checkdataishex(payload[colName]['old'])) {
-                        payload[colName]['old'] = converthextoutf(payload[colName]['old'])
+                    if (await checkdataishex(payload[colName]['old'])) {
+                        payload[colName]['old'] =await converthextoutf(payload[colName]['old'])
                     }
                 }
             }
             if (payload[colName]['new'] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName]['new'].toUpperCase() != 'NULL') {
-                    if (checkdataishex(payload[colName]['new'])) {
-                        payload[colName]['new'] = converthextoutf(payload[colName]['new'])
+                    if (await checkdataishex(payload[colName]['new'])) {
+                        payload[colName]['new'] = await converthextoutf(payload[colName]['new'])
                     }
                 }
             }
