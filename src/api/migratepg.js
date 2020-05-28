@@ -20,6 +20,7 @@ async function migratepgInsert(dbpool, payload) {
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     datatypeobj = await dbcommonfunction.pgfetchdatatype(client, schemaname, tablename);
     payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload) 
+    console.log("Payload after hex validation : " + JSON.stringify(payload) )
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);
     await client.query(sql);
