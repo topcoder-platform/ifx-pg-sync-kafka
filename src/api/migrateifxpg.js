@@ -120,7 +120,7 @@ async function migrateifxupdatedata(payload, client) {
 
     var updatesql = ""
     updatesql = `UPDATE ${tablename} SET `
-    updatestr = dbcommonfunction.createupdatestr(columnNames);
+    updatestr = await dbcommonfunction.createupdatestr(columnNames);
     for (const row of data) {
       const values = await dbcommonfunction.db_datavalues_from_fetched_row(columnNames,row,db_schema,tablename,datatypeobj);
       let schemaname = (db_schema == pg_dbname) ? 'public' : db_schema;
