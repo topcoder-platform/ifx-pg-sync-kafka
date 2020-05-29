@@ -74,6 +74,7 @@ async function migrateifxupdatedata(payload, client) {
     console.log(columnNames);
     const tablename = payload.TABLENAME
     const db_schema = payload.SCHEMANAME
+    const dbname = payload.SCHEMANAME
     let schemaname = (db_schema == pg_dbname) ? 'public' : db_schema;
     console.log(tablename);
     payload = payload.DATA;
