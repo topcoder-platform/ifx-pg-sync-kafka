@@ -106,9 +106,9 @@ async function migratepgDelete(dbpool, payload) {
     payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload) 
     var conditionstr = ""
     if (datapk.length == 0) {
-      conditionstr = await dbcommonfunction.deletedatacondition_withoutpk(columnNames, payload, datatypeobj)
+      conditionstr = await dbcommonfunction.deletedatacondition_withoutpk(columnNames, payload, datatypeobj, tablename)
     } else {
-      conditionstr = await dbcommonfunction.deletedatacondition_withpk(columnNames, payload, datatypeobj, datapk)
+      conditionstr = await dbcommonfunction.deletedatacondition_withpk(columnNames, payload, datatypeobj, tablename, datapk)
     }
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);

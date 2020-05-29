@@ -33,9 +33,9 @@ async function migrateifxinsertdata(payload, client) {
       usepkforcond = await dbcommonfunction.ivalidatetousepkcondition(columnNames, payload, datapk)
     }
     if (usepkforcond == 0) {
-      conditionstr = await dbcommonfunction.insertretrivalcondition_withoutpk(columnNames, payload, datatypeobj)
+      conditionstr = await dbcommonfunction.insertretrivalcondition_withoutpk(columnNames, payload, datatypeobj,tablename)
     } else {
-      conditionstr = await dbcommonfunction.insertretrivalcondition_withpk(columnNames, payload, datatypeobj, datapk)
+      conditionstr = await dbcommonfunction.insertretrivalcondition_withpk(columnNames, payload, datatypeobj, tablename, datapk)
     }
     infsql = `select * from ${tablename} where ${conditionstr};` // "insert into <schema>:<table> (col_1, col_2, ...) values (val_1, val_2, ...)"
     console.log(`informix query ${infsql}`);
@@ -93,9 +93,9 @@ async function migrateifxupdatedata(payload, client) {
     }
     //REtrival contion
     if (usepkforcond == 0) {
-      conditionstr = await dbcommonfunction.updateretrivalcondition_withoutpk(columnNames,payload,datatypeobj )
+      conditionstr = await dbcommonfunction.updateretrivalcondition_withoutpk(columnNames,payload,datatypeobj,tablename )
     } else {
-      conditionstr = await dbcommonfunction.updateretrivalcondition_withpk(columnNames,payload,datatypeobj,datapk )
+      conditionstr = await dbcommonfunction.updateretrivalcondition_withpk(columnNames,payload,datatypeobj,tablename,datapk )
     }
     //Exemption added it should always in sequence
     payload = await dbcommonfunction.uvalidateexemptiondatatype(dbname, tablename, payload);
@@ -160,9 +160,9 @@ async function migrateifxdeletedata(payload, client) {
     }
     var conditionstr = ""
     if (usepkforcond == 0) {
-      conditionstr = await dbcommonfunction.deletedatacondition_withoutpk(columnNames, payload, datatypeobj)
+      conditionstr = await dbcommonfunction.deletedatacondition_withoutpk(columnNames, payload, datatypeobj, tablename)
     } else {
-      conditionstr = await dbcommonfunction.deletedatacondition_withpk(columnNames, payload, datatypeobj, datapk)
+      conditionstr = await dbcommonfunction.deletedatacondition_withpk(columnNames, payload, datatypeobj, tablename, datapk)
     }
     sql = `SET search_path TO ${schemaname};`;
     console.log(sql);

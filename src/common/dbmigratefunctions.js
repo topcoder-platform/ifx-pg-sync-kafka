@@ -98,7 +98,7 @@ async function converthextoutf(hexdata) {
         throw "converthextoutf : " + err
     }
 }
-async function updateretrivalcondition_withpk(columnNames, payload, datatypeobj, datapk) {
+async function updateretrivalcondition_withpk(columnNames, payload, datatypeobj, tablename, datapk) {
     try {
         var conditionstr = ""
         bufffernewcond = 0
@@ -126,7 +126,7 @@ async function updateretrivalcondition_withpk(columnNames, payload, datatypeobj,
     }
 
 }
-async function insertretrivalcondition_withpk(columnNames, payload, datatypeobj, datapk) {
+async function insertretrivalcondition_withpk(columnNames, payload, datatypeobj, tablename, datapk) {
     try {
 
         var conditionstr = ""
@@ -179,7 +179,7 @@ async function updatedatacondition_withpk(columnNames, payload, datatypeobj, dat
         throw "updatedatacondition_withpk : " + err
     }
 }
-async function updateretrivalcondition_withoutpk(columnNames, payload, datatypeobj) {
+async function updateretrivalcondition_withoutpk(columnNames, payload, datatypeobj, tablename) {
     try {
         var conditionstr = ""
         bufffernewcond = 0
@@ -204,7 +204,7 @@ async function updateretrivalcondition_withoutpk(columnNames, payload, datatypeo
         throw "updateretrivalcondition_withoutpk : " + err
     }
 }
-async function insertretrivalcondition_withoutpk(columnNames, payload, datatypeobj) {
+async function insertretrivalcondition_withoutpk(columnNames, payload, datatypeobj,tablename) {
     try {
         var conditionstr = ""
         bufffercond = 0
@@ -275,7 +275,7 @@ async function updatesetdatastr(columnNames, payload, datatypeobj) {
         throw "updatesetdatastr : " + err
     }
 }
-async function deletedatacondition_withoutpk(columnNames, payload, datatypeobj) {
+async function deletedatacondition_withoutpk(columnNames, payload, datatypeobj, tablename) {
     try {
         var conditionstr = ""
         bufffercond = 0
@@ -298,7 +298,7 @@ async function deletedatacondition_withoutpk(columnNames, payload, datatypeobj) 
         throw "deletedatacondition_withoutpk : " + err
     }
 }
-async function deletedatacondition_withpk(columnNames, payload, datatypeobj, datapk) {
+async function deletedatacondition_withpk(columnNames, payload, datatypeobj, tablename, datapk) {
     try {
         var conditionstr = ""
         bufffercond = 0
