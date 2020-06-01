@@ -1,10 +1,7 @@
 const Kafka = require('no-kafka');
 const Promise = require('bluebird');
 const config = require('config');
-const { 
-    postMessage,
-    validateMsgPosted
-  } = require('./api/postslackinfo')
+const slack = require('./api/postslackinfo')
 const consumer = new Kafka.GroupConsumer();
 
 const dataHandler = function (messageSet, topic, partition) {
@@ -12,8 +9,8 @@ const dataHandler = function (messageSet, topic, partition) {
       const payload = JSON.parse(m.message.value)
       if(config.SLACK.SLACKNOTIFY === 'true') {
         console.log(payload)
-        await postMessage(Object.values(payload), async (response) => {
-            await validateMsgPosted(response.statusCode, response.statusMessage)
+        await slack.postMessage(Object.values(payload), async (response) => {
+            await slack.validateMsgPosted(response.statusCode, response.statusMessage)
         });
         }
      
