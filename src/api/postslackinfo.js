@@ -2,19 +2,19 @@ const config = require('config');
 const zlib = require('zlib');
 const url = require('url');
 const https = require('https');
+const logger = require('../common/logger')
 hookUrl = config.SLACK.URL
 slackChannel = config.SLACK.SLACKCHANNEL
 
 async function postMessage(message, callback) {
-
     var slackMessage = {
         channel: `${slackChannel}`,
         text: `${message}`,
     }
-    console.log("stringfied slack message");
-    console.log(JSON.stringify(slackMessage))
-    console.log("slack message");
-    console.log(slackMessage)
+    logger.debug("stringfied slack message");
+    logger.debug(JSON.stringify(slackMessage))
+    logger.debug("slack message");
+    logger.debug(slackMessage)
     const body = JSON.stringify(slackMessage);
     const options = url.parse(hookUrl);
     options.method = 'POST';
@@ -42,17 +42,17 @@ async function postMessage(message, callback) {
     postReq.write(body);
     postReq.end();
 }
-async function validateMsgPosted(responsecode,responsemsg) {
+async function validateMsgPosted(responsecode, responsemsg) {
     if (responsecode < 400) {
-        console.info('Message posted successfully');
-      } else if (responsecode < 500) {
-        console.error(`Error posting message to Slack API: ${responsecode} - ${responsemsg}`);
-      } else {
-        console.log(`Server error when processing message: ${responsecode} - ${responsemsg}`);
-      }
+        logger.info('Message posted successfully');
+    } else if (responsecode < 500) {
+        logger.logFullError(`Error posting message to Slack API: ${responsecode} - ${responsemsg}`);
+    } else {
+        logger.logFullError(`Server error when processing message: ${responsecode} - ${responsemsg}`);
+    }
 }
 
-module.exports = { 
+module.exports = {
     postMessage,
     validateMsgPosted
 }

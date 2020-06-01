@@ -9,7 +9,6 @@ async function pushToKafka(producer, topicname, payload) {
   let kafka_error
   await producer.send({
     topic: topicname,
-    // partition: config.topic.PARTITION,
     message: {
       value: JSON.stringify(payload)
     }
@@ -24,10 +23,9 @@ async function pushToKafka(producer, topicname, payload) {
   }).then(function (result) {
     if (result[0].error) {
       kafka_error = result[0].error
-      console.log(kafka_error)
+      logger.logFullError(kafka_error)
       return kafka_error
     }
-    //console.log(result)
   })
   return
 }

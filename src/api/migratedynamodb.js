@@ -4,9 +4,8 @@ const _ = require('lodash')
 var AWS = require("aws-sdk");
 async function pushToDynamoDb(payload) {
   try {
-    console.log('----Inside DynomoDB code -------');
+    logger.debug('----Inside DynomoDB code -------');
     let seqID = payload.TIME + "_" + payload.TABLENAME
-    // console.log(payload)
     var params = {
       TableName: config.DYNAMODB.TABLENAME,
       Item: {
@@ -25,12 +24,16 @@ async function pushToDynamoDb(payload) {
       convertEmptyValues: true
     });
     docClient.put(params, function (err, data) {
-      if (err) console.log('DynamoDB error : ', err);
-      else console.log('DynamoDB Success : ', data);
+      if (err) {
+        logger.error('DynamoDB error : ')
+        logger.logFullError(err);
+      } else {
+        logger.info('DynamoDB Success : ', data);
+      }
     });
 
   } catch (e) {
-    console.log(e)
+    logger.logFullError(e);
   }
 }
 module.exports = pushToDynamoDb

@@ -6,6 +6,7 @@ const bodyParser = require('body-parser')
 const app_log = require('./common/app_log')
 const pushToKafka = require('./api/pushToKafka')
 const slack = require('./api/postslackinfo')
+const logger = require('./common/logger');
 const app = express()
 app.use(bodyParser.json()); // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
@@ -20,7 +21,7 @@ app.post('/kafkaevents', async (req, res, next) => {
   try {
     await app_log.create_producer_app_log(payload, "PayloadReceived")
   } catch (error) {
-    console.log(error)
+    logger.logFullError(error)
   }
   //send kafka message
   let kafka_error
@@ -46,7 +47,7 @@ app.post('/kafkaevents', async (req, res, next) => {
   //send error message to kafka
   kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
   if (!kafka_error) {
-    console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
+    logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
   } else {
     if (config.SLACK.SLACKNOTIFY === 'true') {
       await slack.postMessage("producer post meesage failed- But usable to post the error in kafka error topic due to errors", async (response) => {
@@ -59,11 +60,12 @@ app.post('/kafkaevents', async (req, res, next) => {
 
 const producer = new Kafka.Producer()
 producer.init().then(function () {
-    console.log('connected to local kafka server on port 9092 ...');
+    logger.info('connected to local kafka server on port 9092 ...');
     // start the server
     app.listen(config.PORT);
-    console.log('Server started! At http://localhost:' + config.PORT);
+    logger.info('Server started! At http://localhost:' + config.PORT);
   } //end producer init
 ).catch(e => {
-  console.log('Error : ', e)
+  logger.error('Error : Kafka producer initialise failed')
+  logger.logFullError(e)
 });

@@ -1,16 +1,16 @@
 const config = require('config');
 const TextDecoder = require('util').TextDecoder;
+const logger = require('./logger')
 async function pgfetchdatatype(client, schemaname, tablename) {
     try {
-        console.log("retriving data type ------")
+        logger.debug("retriving data type ------")
         var datatypeobj = new Object();
         const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
         const sqlfetchdatatypevalues = [schemaname, tablename];
         await client.query(sqlfetchdatatype, sqlfetchdatatypevalues).then(res => {
-            console.log("datatype fetched---------------------");
-            //console.log(res);
             const data = res.rows;
             data.forEach(row => datatypeobj[row['column_name']] = row['udt_name']);
+            logger.info("datatype fetched---------------------");
         })
         return datatypeobj;
     } catch (err) {
@@ -19,16 +19,15 @@ async function pgfetchdatatype(client, schemaname, tablename) {
 }
 async function pgfetchprimarykey(client, schemaname, tablename) {
     try {
-        console.log("retriving primary key ------")
+        logger.debug("retriving primary key ------")
         var datapk = [];
         //const sqlfetchdatatype = 'SELECT column_name, udt_name FROM information_schema.COLUMNS WHERE table_schema=$1 and TABLE_NAME = $2';
         const sqlfetchdatapk = 'SELECT c.column_name, c.ordinal_position FROM information_schema.key_column_usage AS c LEFT JOIN information_schema.table_constraints AS t ON t.constraint_name = c.constraint_name WHERE t.constraint_schema=$1 AND t.table_name = $2 AND t.constraint_type = $3';
         const sqlfetchdatapkvalues = [schemaname, tablename, 'PRIMARY KEY'];
         await client.query(sqlfetchdatapk, sqlfetchdatapkvalues).then(res => {
-            console.log("primary fetched---------------------");
-            //console.log(res);
             const data = res.rows;
             data.forEach(row => datapk.push(row['column_name']));
+            logger.info("primary fetched---------------------");
         })
         return datapk;
     } catch (err) {
@@ -40,9 +39,9 @@ async function ivalidateexemptiondatatype(dbname, tablename, payload) {
 
         if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${tablename}`)) {
             fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${tablename}`)
-            console.log("Exemption File Name : " + fieldname);
+            logger.info("Exemption File Name : " + fieldname);
             payload[fieldname] = (payload[fieldname].toUpperCase == 'NULL') ? payload[fieldname] : payload[fieldname].substr(1);
-            console.log(payload[fieldname])
+            logger.debug(payload[fieldname])
         }
         return payload;
     } catch (err) {
@@ -54,11 +53,11 @@ async function uvalidateexemptiondatatype(dbname, tablename, payload) {
     try {
         if (config.has(`EXEMPTIONDATATYPE.MONEY.${dbname}_${tablename}`)) {
             fieldname = config.get(`EXEMPTIONDATATYPE.MONEY.${dbname}_${tablename}`)
-            console.log("Exemption File Name : " + fieldname);
+            logger.info("Exemption File Name : " + fieldname);
             payload[fieldname]['old'] = (payload[fieldname]['old'].toUpperCase == 'NULL') ? payload[fieldname]['old'] : payload[fieldname]['old'].substr(1);
-            console.log(payload[fieldname]['old'])
+            logger.debug(payload[fieldname]['old'])
             payload[fieldname]['new'] = (payload[fieldname]['new'].toUpperCase == 'NULL') ? payload[fieldname]['new'] : payload[fieldname]['new'].substr(1);
-            console.log(payload[fieldname]['new'])
+            logger.debug(payload[fieldname]['new'])
         }
         return payload;
     } catch (err) {
@@ -68,10 +67,10 @@ async function uvalidateexemptiondatatype(dbname, tablename, payload) {
 async function checkdataishex(hexdata) {
     try {
         if (Buffer.from(hexdata, 'ascii').toString() === hexdata) {
-            console.log("It is ascii format")
+            logger.debug("It is ascii format")
             return false;
         } else {
-            console.log("it is hex format")
+            logger.debug("it is hex format")
             return true;
         }
     } catch (err) {
@@ -92,7 +91,6 @@ async function converthextoutf(hexdata) {
         var returndata = new TextDecoder(encoding, {
             NONSTANDARD_allowLegacyEncoding: true
         });
-        //console.log("decoded", returndata.decode(bytes));
         return returndata.decode(bytes);
     } catch (err) {
         throw "converthextoutf : " + err
@@ -132,7 +130,7 @@ async function insertretrivalcondition_withpk(columnNames, payload, datatypeobj,
         var conditionstr = ""
         bufffercond = 0
         columnNames.forEach((colName) => {
-            console.log(colName)
+            logger.debug(colName)
             if (datapk.includes(colName)) {
                 if (payload[colName] != 'unsupportedtype') {
                     if (bufffercond == 1) {
@@ -155,7 +153,7 @@ async function insertretrivalcondition_withpk(columnNames, payload, datatypeobj,
 }
 async function updatedatacondition_withpk(columnNames, payload, datatypeobj, datapk) {
     try {
-        console.log("Buidling condtion with primary key")
+        logger.debug("Buidling condtion with primary key")
         buffferoldcond = 0
         var conditionstr = ""
         columnNames.forEach((colName) => {
@@ -184,7 +182,7 @@ async function updateretrivalcondition_withoutpk(columnNames, payload, datatypeo
         var conditionstr = ""
         bufffernewcond = 0
         columnNames.forEach((colName) => {
-            console.log(colName)
+            logger.debug(colName)
             colobj = payload[colName]
             if (colobj.new != 'unsupportedtype') {
                 if (bufffernewcond == 1) {
@@ -209,7 +207,7 @@ async function insertretrivalcondition_withoutpk(columnNames, payload, datatypeo
         var conditionstr = ""
         bufffercond = 0
         columnNames.forEach((colName) => {
-            console.log(colName)
+            logger.debug(colName)
             if (payload[colName] != 'unsupportedtype') {
                 if (bufffercond == 1) {
                     conditionstr = conditionstr + " and "
@@ -231,7 +229,7 @@ async function insertretrivalcondition_withoutpk(columnNames, payload, datatypeo
 async function updatedatacondition_withoutpk(columnNames, payload, datatypeobj) {
     try {
         //columnNames,payload,datatypeobj
-        console.log("Buidling condtion without primary key")
+        logger.debug("Buidling condtion without primary key")
         buffferoldcond = 0
         var conditionstr = ""
         columnNames.forEach((colName) => {
@@ -255,7 +253,7 @@ async function updatedatacondition_withoutpk(columnNames, payload, datatypeobj) 
 }
 async function updatesetdatastr(columnNames, payload, datatypeobj) {
     try {
-        console.log("Buidling data string")
+        logger.debug("Buidling data string")
         bufferforsetdatastr = 0
         var setdatastr = ""
         columnNames.forEach((colName) => {
@@ -390,7 +388,7 @@ async function db_datavalues_from_fetched_row(columnNames, row, dbname, tablenam
                     }
                 }
                 if (isUtf8(row[colName]) || datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'date') {
-                    console.log(`utf8 or datetime format ${colName}`);
+                    logger.debug(`utf8 or datetime format ${colName}`);
                     values.push(row[colName]);
                 } else {
                     values.push(new Buffer.from(row[colName], 'binary'));
@@ -438,7 +436,7 @@ async function db_datavalues_from_update_datapayload(columnNames, payload) {
 async function hextoutf_insertpayload(columnNames, datatypeobj, payload) {
     try {
         await Promise.all(columnNames.map(async (colName) => {
-            console.log(`colName : ${colName}`)
+            logger.debug(`colName : ${colName}`)
             if (payload[colName] != 'unsupportedtype') {
                 if (datatypeobj[colName] == 'varchar' && payload[colName].toUpperCase() != 'NULL') {
                     if (await checkdataishex(payload[colName])) {

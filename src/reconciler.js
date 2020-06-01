@@ -5,9 +5,6 @@ const request = require("request");
 const pgOptions = config.get('POSTGRES')
 const database = 'auditlog'
 const pgConnectionString = `postgresql://${pgOptions.user}:${pgOptions.password}@${pgOptions.host}:${pgOptions.port}/${database}`
-console.log(pgConnectionString)
-//const pgClient = new pg.Client(pgConnectionString)
-//pgClient.connect();
 const logger = require('./common/logger')
 const _ = require('lodash')
 var AWS = require("aws-sdk");
@@ -27,27 +24,26 @@ async function dynamo_pg_validation() {
             ":time_2": Date.now()
         }
     }
-    console.log("scanning");
+    logger.info("scanning");
     await docClient.scan(params, onScan);
     return
 }
 async function onScan(err, data) {
     if (err) {
-        console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+        logger.error("Unable to scan the table.")
+        logger.logFullError(err);
     } else {
 
-        console.log("Scan succeeded.");
+        logger.info("Scan succeeded.");
         data.Items.forEach(async function (item) {
-            //            console.log(item);
             await validate_data_in_pg(item.SequenceID, item.pl_document)
-
         });
 
         // continue scanning if we have more movies, because
         // scan can retrieve a maximum of 1MB of data
 
         if (typeof data.LastEvaluatedKey != "undefined") {
-            console.log("Scanning for more...");
+            logger.info("Scanning for more...");
             params.ExclusiveStartKey = data.LastEvaluatedKey;
             await docClient.scan(params, onScan);
         } else {
@@ -67,10 +63,10 @@ async function validate_data_in_pg(SequenceID, payload) {
         logger.logFullError(err)
         process.exit()
     }
-    console.log(SequenceID);
+    logger.debug(SequenceID);
     const sqlquerytovalidate = 'SELECT COUNT(*) FROM audit_log WHERE "SEQ_ID"=$1';
     const sqlquerytovalidate_values = [SequenceID]
-    console.log(sqlquerytovalidate);
+    logger.debug(sqlquerytovalidate);
     await pgClient.query(sqlquerytovalidate, sqlquerytovalidate_values, async (err, res) => {
 
         if (err) {
@@ -78,14 +74,14 @@ async function validate_data_in_pg(SequenceID, payload) {
             logger.debug(errmsg0)
             // await callposttoslack(errmsg0)
         } else {
-            console.log("validating data count---------------------");
+            logger.info("validating data count---------------------");
             const data = res.rows;
             data.forEach(async (row) => {
                 if (row['count'] == 0) {
                     await posttopic(payload, 0)
-                    console.log("post the topic");
+                    logger.debug("post the topic");
                 } else {
-                    console.log(`${SequenceID} is exist in pg`)
+                    logger.info(`${SequenceID} is exist in pg`)
                 }
             });
         }
@@ -123,17 +119,17 @@ async function repostfailure() {
     sqltofetchfailure = sql1 + sql2 + sql3 + sql4
     var sqltofetchfailure_values = [rec_ignore_status, rec_diff_period, rec_start_elapse, rec_retry_count]
     //var sqltofetchfailure_values = [rec_ignore_status, rec_diff_period, rec_start_elapse, rec_retry_count]
-    console.log('sql : ', sqltofetchfailure)
+    logger.info('sql : ', sqltofetchfailure)
     await pgClient.query(sqltofetchfailure, sqltofetchfailure_values, async (err, res) => {
         if (err) {
             var errmsg0 = `error-sync: Audit reconsiler query  "${err.message}"`
             logger.debug(errmsg0)
             // await callposttoslack(errmsg0)
         } else {
-            console.log("Reposting Data---------------------\n");
+            logger.info("Reposting Data---------------------\n");
             const data = res.rows;
             data.forEach(async (row) => {
-                console.log("\npost the topic for : " + row['SEQ_ID']);
+                logger.info("\npost the topic for : " + row['SEQ_ID']);
                 await posttopic(row['PRODUCER_PAYLOAD'], 1)
             });
         }
@@ -164,15 +160,15 @@ async function postpayload_to_restapi(payload) {
         }
         else
         {
-            console.log("ReconcilerIFXtoPG :  " + payload['TIME'] + "_" + payload['TABLENAME'] + " Success")
-            console.log(body);
+            logger.info("ReconcilerIFXtoPG :  " + payload['TIME'] + "_" + payload['TABLENAME'] + " Success")
+            logger.debug(body);
         }
     });
     return
 }
 
 async function posttopic(payload, integratereconcileflag) {
-    console.log(payload + " " + integratereconcileflag);
+    logger.debug(payload + " " + integratereconcileflag);
     if (integratereconcileflag == 1) {
         //update payload with reconcile status
         //post to rest api
