@@ -1,5 +1,6 @@
 const path = require('path');
 module.exports = {
+  DISABLE_LOGGING: false, // If true, logging will be disabled
   LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
   LOG_FILE: path.join(__dirname, '../app.log'),
   PORT: process.env.PORT || 8080,

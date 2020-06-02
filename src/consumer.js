@@ -3,6 +3,12 @@ const Promise = require('bluebird');
 const config = require('config');
 const logger = require('./common/logger');
 const healthcheck = require('topcoder-healthcheck-dropin');
+const app_log = require('./common/app_log')
+const migratepg = require('./api/migratepg')
+const migrateifxpg = require('./api/migrateifxpg')
+const pushToKafka = require('./api/pushToKafka')
+const slack = require('./api/postslackinfo')
+const consumerretry = require('./api/consumer_retry')
 const options = {
   groupId: config.KAFKA_GROUP_ID,
   connectionString: config.KAFKA_URL,
@@ -13,35 +19,14 @@ const options = {
 };
 
 const consumer = new Kafka.GroupConsumer(options);
-const {
-  create_consumer_app_log,
-  consumerpg_success_log,
-  consumerpg_failure_log
-} = require('./common/app_log')
-//const { migrateDelete, migrateInsert, migrateUpdate } = require('./api/migrate')
-const {
-  migratepgDelete,
-  migratepgInsert,
-  migratepgUpdate
-} = require('./api/migratepg')
-const {
-  migrateifxinsertdata,
-  migrateifxupdatedata,
-  migrateifxdeletedata
-} = require('./api/migrateifxpg')
-const pushToKafka = require('./api/pushToKafka')
-const {
-  postMessage,
-  validateMsgPosted
-} = require('./api/postslackinfo')
-const consumerretry = require('./api/consumer_retry')
-//const { migrateinsertdata } =  require('./api/migrate-data')
+
 const producer = new Kafka.Producer()
 
 producer.init().then(function () {
-  console.log('connected to local kafka server on port 9092 ...');
+  logger.info('connected to local kafka server on port 9092 ...');
 }).catch(e => {
-  console.log('Error : ', e)
+  logger.error(`Error : Kafka producer initial error`)
+  logger.logFullError(e)
 });
 
 const {
@@ -50,80 +35,62 @@ const {
 database = config.get('POSTGRES.database');
 const pool = createPool(database);
 pool.on('remove', client => {
-  console.log("setting property to on query completion");
+  logger.debug("setting property to on query completion");
 })
-console.log('---------------------------------');
-
+logger.debug(`${pool}`);
 async function dataHandler(messageSet, topic, partition) {
   return Promise.each(messageSet, async function (m) {
     const payload = JSON.parse(m.message.value)
-
-    // insert consumer_log
     try {
-      await create_consumer_app_log(payload)
+      await app_log.create_consumer_app_log(payload)
     } catch (error) {
-      console.log(error)
+      logger.logFullError(error)
     }
 
     //update postgres table
     let postgreErr
     if (payload.uniquedatatype === 'true') {
-      //retrive teh data from info and insert in postgres
-      console.log("welcome")
-      //await migrateinsertdata(payload, pool)
-      console.log(pool);
+      //retrive the data from info and insert in postgres
       if (payload.OPERATION === 'INSERT') {
-        await migrateifxinsertdata(payload, pool)
+        await migrateifxpg.migrateifxinsertdata(payload, pool)
           .catch(err => {
             postgreErr = err
-            //console.log(err)
           })
       }
       if (payload.OPERATION === 'UPDATE') {
-        await migrateifxupdatedata(payload, pool)
+        await migrateifxpg.migrateifxupdatedata(payload, pool)
           .catch(err => {
             postgreErr = err
-            //console.log(err)
           })
       }
       if (payload.OPERATION === 'DELETE') {
-        await migrateifxdeletedata(payload, pool)
+        await migrateifxpg.migrateifxdeletedata(payload, pool)
           .catch(err => {
             postgreErr = err
-            //console.log(err)
           })
       }
-
-      console.log("Different approach")
+      logger.info("Different approach")
     } else {
       if (payload.OPERATION === 'INSERT') {
-        let entity = payload.DATA
-        await migratepgInsert(pool, payload)
+        await migratepg.migratepgInsert(pool, payload)
           .catch(err => {
             postgreErr = err
-            //console.log(err)
           })
-
       } else if (payload.OPERATION === 'UPDATE') {
-        await migratepgUpdate(pool, payload)
+        await migratepg.migratepgUpdate(pool, payload)
           .catch(err => {
             postgreErr = err
-            //console.log(err)
           })
-
       } else if (payload.OPERATION === 'DELETE') {
-        let entity = payload.DATA
-        await migratepgDelete(pool, payload)
+        await migratepg.migratepgDelete(pool, payload)
           .catch(err => {
             postgreErr = err
-            //console.log(err)
           })
-
       }
     }
     //audit success log
     if (!postgreErr) {
-      await consumerpg_success_log(payload)
+      await app_log.consumerpg_success_log(payload)
       return consumer.commitOffset({
         topic: topic,
         partition: partition,
@@ -133,9 +100,8 @@ async function dataHandler(messageSet, topic, partition) {
     } else {
 
       //audit failure log
-      console.log(postgreErr)
-      await consumerpg_failure_log(payload, postgreErr)
-      
+      logger.logFullError(postgreErr)
+      await app_log.consumerpg_failure_log(payload, postgreErr)
       let msgValue = {
         ...postgreErr,
         recipients: config.topic_error.EMAIL,
@@ -147,11 +113,11 @@ async function dataHandler(messageSet, topic, partition) {
         logger.debug('Reconcile failed, sending it to error queue: ', config.topic_error.NAME);
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
-          console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
+          logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
           if (config.SLACK.SLACKNOTIFY === 'true') {
-            await postMessage("consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors", async (response) => {
-              await validateMsgPosted(response.statusCode, response.statusMessage)
+            await slack.postMessage("consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors", async (response) => {
+              await slack.validateMsgPosted(response.statusCode, response.statusMessage)
             });
           }
         }
@@ -170,19 +136,17 @@ async function dataHandler(messageSet, topic, partition) {
         logger.debug('Reached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
-          console.log("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
+          logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
           if (config.SLACK.SLACKNOTIFY === 'true') {
-            await postMessage("Consumer Retry reached Max- But unable to post kafka due to errors", async (response) => {
-              await validateMsgPosted(response.statusCode, response.statusMessage)
+            await slack.postMessage("Consumer Retry reached Max- But unable to post kafka due to errors", async (response) => {
+              await slack.validateMsgPosted(response.statusCode, response.statusMessage)
             });
           }
         }
-
-
       } else {
-//moved to consumerretry function
-        await consumerretry(producer,payload)
+        //moved to consumerretry function
+        await consumerretry(producer, payload)
       }
       return consumer.commitOffset({
         topic: topic,
@@ -192,7 +156,7 @@ async function dataHandler(messageSet, topic, partition) {
       })
 
     }
-  }).catch(err => console.log(err))
+  }).catch(err => logger.logFullError(err))
 
 };
 
@@ -207,9 +171,6 @@ const check = function () {
   });
   return connected;
 };
-
-
-
 /**
  * Initialize kafka consumer
  */
@@ -219,9 +180,7 @@ async function setupKafkaConsumer() {
       subscriptions: [config.topic.NAME],
       handler: dataHandler
     }];
-
     await consumer.init(strategies);
-
     logger.info('Initialized kafka consumer')
     healthcheck.init([check])
   } catch (err) {

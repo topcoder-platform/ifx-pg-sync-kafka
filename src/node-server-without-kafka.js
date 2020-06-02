@@ -15,8 +15,6 @@ app.get('/', function (req, res) {
 
 app.post('/fileevents', async function (req, res) {
   const payload = req.body
-  // const topic = payload.topic
-  const topic = 'test-topic';
   console.log({
     topic: config.topic.NAME,
     partition: config.topic.PARTITION,
@@ -27,22 +25,7 @@ app.post('/fileevents', async function (req, res) {
   await pushToDynamoDb(payload);
     res.send('done');
 
-  // send response to client 
-  //res.send('ok')
-
 })
-
-// const producer = new Kafka.Producer()
-
-// producer.init().then(function () {
-//   console.log('connected to local kafka server on port 9092 ...');
-
-//   // start the server
-//   app.listen(port);
-//   console.log('Server started! At http://localhost:' + port);
-
-// } //end producer init
-// ).catch(e => { console.log('Error : ', e) });
 
 app.listen(port);
 console.log('Server started! At http://localhost:' + port);

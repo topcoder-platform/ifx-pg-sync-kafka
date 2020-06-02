@@ -29,17 +29,6 @@ app.post('/fileevents', function (req, res) {
 
 })
 
-// const producer = new Kafka.Producer()
-
-// producer.init().then(function () {
-//   console.log('connected to local kafka server on port 9092 ...');
-
-//   // start the server
-//   app.listen(port);
-//   console.log('Server started! At http://localhost:' + port);
-
-// } //end producer init
-// ).catch(e => { console.log('Error : ', e) });
 
 app.listen(port);
 console.log('Server started! At http://localhost:' + port);
