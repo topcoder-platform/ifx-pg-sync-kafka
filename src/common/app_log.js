@@ -57,7 +57,7 @@ async function producerpost_success_log(payload , overallstatus) {
         PRODUCER_PUBLISH_STATUS: 'success',
         PRODUCER_PUBLISH_TIME: Date.now(),
         OVERALL_STATUS: overallstatus
-    }).then((log) => lgger.info('Send Success'))
+    }).then((log) => logger.info('Send Success'))
 
     const logMessage = `${seqID} ${payload.TABLENAME} ${payload.uniquedatatype} ${payload.OPERATION} ${payload.TIME}`
     logger.debug(`producer : ${logMessage}`);
