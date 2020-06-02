@@ -11,9 +11,6 @@ RUN apt-get -qq update && apt-get -qq install -y \
 RUN wget -q -O node8.tar.xz https://nodejs.org/dist/v8.11.3/node-v8.11.3-linux-x64.tar.xz \
    && tar xfJ node8.tar.xz && rm -rf node8.tar.xz
 
-# RUN wget -q -O node11.tar.xz https://nodejs.org/dist/v11.15.0/node-v11.15.0-linux-x64.tar.xz \
-#    && tar xfJ node11.tar.xz && rm -rf node11.tar.xz
-
 ENV SERVERNAME=$servername
 ENV INFORMIXDIR /opt/IBM/informix
 ENV INFORMIX_HOME /home/informix
