@@ -11,6 +11,7 @@ async function consumerretry(producer, payload) {
   } catch (error) {
     logger.logFullError(error)
   }
+  await sleep(config.KAFKA_REPOST_DELAY)
   kafka_error = await pushToKafka(producer, config.topic.NAME, payload)
   //add auditlog
   if (!kafka_error) {
@@ -38,5 +39,7 @@ async function consumerretry(producer, payload) {
 
   }
 }
-
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 module.exports = consumerretry
