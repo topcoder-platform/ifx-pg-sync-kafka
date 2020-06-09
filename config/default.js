@@ -10,6 +10,7 @@ module.exports = {
   },
   RETRY_COUNTER: parseInt(process.env.RETRY_COUNTER || 3, 10),
   KAFKA_REPOST_COUNT: parseInt(process.env.KAFKA_REPOST_COUNT || 5, 10),
+  KAFKA_REPOST_DELAY: parseInt(process.env.KAFKA_REPOST_DELAY || 2000, 10),
   KAFKA_URL: process.env.KAFKA_URL,
   KAFKA_GROUP_ID: process.env.KAFKA_GROUP_ID || 'ifx-pg-consumer',
   KAFKA_CLIENT_CERT: process.env.KAFKA_CLIENT_CERT ? process.env.KAFKA_CLIENT_CERT.replace('\\n', '\n') : null,
