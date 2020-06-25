@@ -38,7 +38,7 @@ async function onScan(err, data) {
             reject(err)
         } else {
             logger.info("Scan succeeded.");
-            await Promise.all(ata.Items.map(async (item) => {
+            await Promise.all(data.Items.map(async (item) => {
                 //data.Items.forEach(async function (item) {
                 await validate_data_in_pg(item.SequenceID, item.pl_document)
             }));
