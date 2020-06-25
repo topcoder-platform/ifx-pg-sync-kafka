@@ -72,6 +72,9 @@ module.exports = {
     RECONCILER_DIFF_PERIOD : parseInt(process.env.RECONCILER_DIFF_PERIOD || 10),
     RECONCILER_DURATION_TYPE : process.env.RECONCILER_DURATION_TYPE || 'm',
     RECONCILER_RETRY_COUNT : parseInt(process.env.RECONCILER_RETRY_COUNT || 1),
-    RECONCILER_POST_URL : process.env.RECONCILER_POST_URL || 'http://ifxpg-migrator.topcoder-dev.com/kafkaevents'
+    RECONCILER_POST_URL : process.env.RECONCILER_POST_URL || 'http://ifxpg-migrator.topcoder-dev.com/kafkaevents',
+    RECONCILE_DYNAMODB : process.env.RECONCILE_DYNAMODB || 'true',
+    RECONCILE_PGSTATUS : process.env.RECONCILE_PGSTATUS || 'true',
+    RECONCILE_TIMESCHEDULE : process.env.RECONCILE_TIMESCHEDULE || '*/3 * * * *'
   }  
 }
