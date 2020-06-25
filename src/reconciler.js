@@ -57,7 +57,7 @@ async function onScan(err, data) {
 
 async function validate_data_in_pg(SequenceID, payload) {
     return new Promise(async function (resolve, reject) {
-        logger.debug(SequenceID);
+        logger.info(`Validating sequence id : ${SequenceID}`);
         const sqlquerytovalidate = 'SELECT COUNT(*) FROM audit_log WHERE "SEQ_ID"=$1';
         const sqlquerytovalidate_values = [SequenceID]
         logger.debug(sqlquerytovalidate);
@@ -71,10 +71,12 @@ async function validate_data_in_pg(SequenceID, payload) {
                 const data = res.rows;
                 await Promise.all(data.map(async (row) => {
                     if (row['count'] == 0) {
+                        logger.info(`posting the topic from dynamodb : ${SequenceID} `);
                         await posttopic(payload, 0)
-                        logger.debug("post the topic");
+                        //logger.debug("post the topic");
+
                     } else {
-                        logger.info(`${SequenceID} is exist in pg`)
+                        logger.info(`${SequenceID} is exist in pg. So skipping dynamo db post`)
                     }
                     resolve(true)
                 }));
@@ -86,6 +88,7 @@ async function validate_data_in_pg(SequenceID, payload) {
 
 async function repostfailure() {
     return new Promise(async function (resolve, reject) {
+        logger.info("Vaildating audit log on PG");
         rec_ignore_status = config.RECONCILER.RECONCILER_IGNORE_STATUS
         rec_start_elapse = config.RECONCILER.RECONCILER_START_ELAPSE_TIME
         rec_diff_period = config.RECONCILER.RECONCILER_DIFF_PERIOD //Need to be equal to or greater than scheduler time
@@ -150,6 +153,7 @@ async function posttopic(payload, integratereconcileflag) {
             logger.debug(payload + " " + integratereconcileflag);
             if (integratereconcileflag == 1) {
                 //update payload with reconcile status and post to rest api
+                logger.info("Integrated the Reconciler flag");
                 let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
                 reconcile_flag = reconcile_flag + 1
                 payload.RECONCILE_STATUS = reconcile_flag
@@ -157,6 +161,7 @@ async function posttopic(payload, integratereconcileflag) {
                 resolve(true)
             } else {
                 //post to rest api
+                logger.info("Skipping the Reconciler flag");
                 await postpayload_to_restapi(payload)
                 resolve(true)
             }
