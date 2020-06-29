@@ -43,7 +43,8 @@ async function onScan(err, data) {
             }
             else
             {
-                logger.info("data retrived");
+                logger.info("data retrived" + JSON.stringify(data));
+                
             }
             await Promise.all(data.Items.map(async (item) => {
                 //data.Items.forEach(async function (item) {
