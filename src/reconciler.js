@@ -38,9 +38,18 @@ async function onScan(err, data) {
             reject(err)
         } else {
             logger.info("Scan succeeded.");
+            if (data === undefined || data.length == 0) {
+                logger.info("No datat retrived")
+            }
+            else
+            {
+                logger.info("data retrived");
+            }
             await Promise.all(data.Items.map(async (item) => {
                 //data.Items.forEach(async function (item) {
-                await validate_data_in_pg(item.SequenceID, item.pl_document)
+                        logger.info("items retrived dynamodb : "  + JSON.stringify(item));
+                        await validate_data_in_pg(item.SequenceID, item.pl_document)
+                
             }));
 
             if (typeof data.LastEvaluatedKey != "undefined") {
