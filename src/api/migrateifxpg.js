@@ -84,7 +84,7 @@ async function migrateifxupdatedata(payload, client) {
     //Primary key retrival
     // var datapk = [];
     datapk = await dbcommonfunction.pgfetchprimarykey(client, schemaname, tablename);
-    payload = await dbcommonfunction.hextoutf_updatepayload(columnNames, datatypeobj, payload)
+    //payload = await dbcommonfunction.hextoutf_updatepayload(columnNames, datatypeobj, payload)
     var conditionstr = ""
     var updatestr = ""
     var oldconditionstr = ""

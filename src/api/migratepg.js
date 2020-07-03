@@ -53,7 +53,7 @@ async function migratepgUpdate(dbpool, payload) {
     datatypeobj = await dbcommonfunction.pgfetchdatatype(client, schemaname, tablename);
     //Primary key retrival
     datapk = await dbcommonfunction.pgfetchprimarykey(client, schemaname, tablename);
-    payload = await dbcommonfunction.hextoutf_updatepayload(columnNames, datatypeobj, payload)
+    //payload = await dbcommonfunction.hextoutf_updatepayload(columnNames, datatypeobj, payload)
     var setdatastr = ""
     var oldconditionstr = ""
     setdatastr = await dbcommonfunction.updatesetdatastr(columnNames, payload, datatypeobj)
