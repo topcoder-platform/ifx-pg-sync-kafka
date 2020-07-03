@@ -20,7 +20,7 @@ async function migratepgInsert(dbpool, payload) {
     const columnNames = Object.keys(payload)
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     datatypeobj = await dbcommonfunction.pgfetchdatatype(client, schemaname, tablename);
-    payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
+    //payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
     logger.debug("Payload after hex validation : " + JSON.stringify(payload))
     sql = `SET search_path TO ${schemaname};`;
     logger.info(sql);
@@ -99,7 +99,7 @@ async function migratepgDelete(dbpool, payload) {
     //Primary key retrival
     //var datapk = [];
     datapk = await dbcommonfunction.pgfetchprimarykey(client, schemaname, tablename);
-    payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
+    //payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
     var conditionstr = ""
     if (datapk.length == 0) {
       conditionstr = await dbcommonfunction.deletedatacondition_withoutpk(columnNames, payload, datatypeobj, tablename)

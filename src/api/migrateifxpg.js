@@ -24,7 +24,7 @@ async function migrateifxinsertdata(payload, client) {
     //Primary key retrival
     //var datapk = [];
     var datapk = await dbcommonfunction.pgfetchprimarykey(client, schemaname, tablename);
-    payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
+    //payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
     const paramSql = Array.from(Array(columnNames.length).keys(), x => `$${x + 1}`).join(',');
     const insertSql = `insert into "${tablename}" (${columnNames.map(x => `"${x}"`).join(',')}) values(${paramSql})`;
     var conditionstr = ""
@@ -154,7 +154,7 @@ async function migrateifxdeletedata(payload, client) {
     let schemaname = (dbname == pg_dbname) ? 'public' : dbname;
     datatypeobj = await dbcommonfunction.pgfetchdatatype(client, schemaname, tablename);
     datapk = await dbcommonfunction.pgfetchprimarykey(client, schemaname, tablename);
-    payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
+    //payload = await dbcommonfunction.hextoutf_insertpayload(columnNames, datatypeobj, payload)
     usepkforcond = 0
     if (datapk.length != 0) {
       usepkforcond = await dbcommonfunction.ivalidatetousepkcondition(columnNames, payload, datapk)
