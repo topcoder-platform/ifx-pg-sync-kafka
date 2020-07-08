@@ -382,11 +382,11 @@ async function db_datavalues_from_fetched_row(columnNames, row, dbname, tablenam
                 if (fieldname == colName) {
                     row[colName] = row[colName].substr(1)
                 }
-                if (datatypeobj[colName] == 'varchar') {
+/*                 if (datatypeobj[colName] == 'varchar') {
                     if (await checkdataishex(row[colName])) {
                         row[colName] = await converthextoutf(row[colName])
                     }
-                }
+                } */
                 if (isUtf8(row[colName]) || datatypeobj[colName] == 'timestamp' || datatypeobj[colName] == 'date') {
                     logger.debug(`utf8 or datetime format ${colName}`);
                     values.push(row[colName]);
