@@ -96,8 +96,6 @@ workflows:
             branches:
               only:
                 - dev
-                - dev-chr-fix
-                - dev-spl-chr-fix
                 - dev-reconciler-fix-v1
 
       # Production builds are exectuted only on tagged commits to the
