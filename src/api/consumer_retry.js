@@ -23,7 +23,8 @@ async function consumerretry(producer, payload) {
       ...kafka_error,
       SEQ_ID: payload.SEQ_ID,
       recipients: config.topic_error.EMAIL,
-      msgoriginator: "consumer-producer"
+      msgoriginator: "consumer-producer",
+      msginfo: "Failed to post message"
     }
     //send error message to kafka
     kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)

@@ -1,192 +1,173 @@
 const config = require('config')
-//Establishing connection in postgress
-const pg = require('pg')
+const cron = require("node-cron");
+const express = require("express");
 const request = require("request");
-const pgOptions = config.get('POSTGRES')
-const database = 'auditlog'
-const pgConnectionString = `postgresql://${pgOptions.user}:${pgOptions.password}@${pgOptions.host}:${pgOptions.port}/${database}`
 const logger = require('./common/logger')
 const _ = require('lodash')
-var AWS = require("aws-sdk");
-var params
-var docClient = new AWS.DynamoDB.DocumentClient({
-    region: config.DYNAMODB.REGION,
-    convertEmptyValues: true
-});
-async function dynamo_pg_validation() {
-    ElapsedTime = config.RECONCILER.RECONCILER_ELAPSE_TIME
-    //ElapsedTime = 4995999000
-    params = {
-        TableName: config.DYNAMODB.TABLENAME,
-        FilterExpression: "NodeSequenceID between :time_1 and :time_2",
-        ExpressionAttributeValues: {
-            ":time_1": Date.now() - ElapsedTime,
-            ":time_2": Date.now()
-        }
-    }
-    logger.info("scanning");
-    await docClient.scan(params, onScan);
-    return
-}
-async function onScan(err, data) {
-    if (err) {
-        logger.error("Unable to scan the table.")
-        logger.logFullError(err);
-    } else {
-
-        logger.info("Scan succeeded.");
-        data.Items.forEach(async function (item) {
-            await validate_data_in_pg(item.SequenceID, item.pl_document)
-        });
-
-        // continue scanning if we have more movies, because
-        // scan can retrieve a maximum of 1MB of data
-
-        if (typeof data.LastEvaluatedKey != "undefined") {
-            logger.info("Scanning for more...");
-            params.ExclusiveStartKey = data.LastEvaluatedKey;
-            await docClient.scan(params, onScan);
-        } else {
-            return
-        }
-    }
-}
-
-async function validate_data_in_pg(SequenceID, payload) {
-    const pgClient = new pg.Client(pgConnectionString)
-    //  await setupPgClient()
+const pgwrapper = require('./common/postgresWrapper');
+const auditlogoperation = require('./api/auditlogdboperation')
+const dynamodblib = require('./api/migratedynamodb')
+var pgclient = null
+async function setup_globalobject() {
     try {
-        await pgClient.connect()
-        logger.debug('Connected to Pg Client2 Audit:')
-    } catch (err) {
-        logger.error('Could not setup postgres client2')
-        logger.logFullError(err)
-        process.exit()
+        database = config.get('POSTGRES.database');
+        pgclient = pgwrapper.createPool(database);
+        pgclient.on('remove', client => {
+            logger.debug("setting property to on query completion");
+        })
+    } catch (e) {
+        logger.logFullError(e);
+        terminate();
     }
-    logger.debug(SequenceID);
-    const sqlquerytovalidate = 'SELECT COUNT(*) FROM audit_log WHERE "SEQ_ID"=$1';
-    const sqlquerytovalidate_values = [SequenceID]
-    logger.debug(sqlquerytovalidate);
-    await pgClient.query(sqlquerytovalidate, sqlquerytovalidate_values, async (err, res) => {
+}
 
-        if (err) {
-            var errmsg0 = `error-sync: Audit reconsiler query  "${err.message}"`
-            logger.debug(errmsg0)
-            // await callposttoslack(errmsg0)
-        } else {
-            logger.info("validating data count---------------------");
-            const data = res.rows;
-            data.forEach(async (row) => {
-                if (row['count'] == 0) {
-                    await posttopic(payload, 0)
-                    logger.debug("post the topic");
+async function dynamo_pg_validation() {
+    return new Promise(async function (resolve, reject) {
+        logger.info("scanning");
+        await auditlogoperation.fetch_dynamo_pg_diff_seqid(pgclient)
+            .then(async function (diffdata) {
+                //console.log(diffdata)
+                var data = diffdata.rows;
+                if (data === undefined || data.length == 0) {
+                    logger.info("No missing seqid identitfied while comparing dynamodb_audit_log with audit_log")
+                    resolve(true);
                 } else {
-                    logger.info(`${SequenceID} is exist in pg`)
+                    await Promise.all(data.map(async (row) => {
+                        logger.info("Posting sequence id : " + row['SEQ_ID']);
+                        await dynamodblib.getdata_DynamoDb(row['SEQ_ID'])
+                            .then(async function (dydata) {
+                                //logger.debug(dydata)
+                                await Promise.all(dydata.Items.map(async (item) => {
+                                    logger.debug("items retrived dynamodb : " + JSON.stringify(item));
+                                    logger.info("Item seqid retrived dynamodb : " + item.SequenceID);
+                                    await posttopic(item.pl_document, 0)
+                                    resolve(true)
+                                }));
+                            })
+                            .catch(function (err) {
+                                logger.logFullError(err);
+                                reject(err)
+                            })
+                        resolve(true)
+                    }));
+                    resolve(true)
                 }
-            });
-        }
-        pgClient.end();
+            })
+            .catch(function (err) {
+                logger.logFullError(err);
+                reject(err)
+            })
     });
-    return
 }
 
 async function repostfailure() {
-    const pgClient = new pg.Client(pgConnectionString)
-    //  await setupPgClient()
-    try {
-        await pgClient.connect()
-        logger.debug('Connected to Pg Client2 Audit:')
-    } catch (err) {
-        logger.error('Could not setup postgres client2')
-        logger.logFullError(err)
-        process.exit()
-    }
-
-    //      select seq_id, producer_payload, overall_status from audit_log where 
-    // overall_status not in ('PostgresUpdated') and 
-    // request_create_time between (timezone('utc',now()) - interval '10m') and (timezone('utc',now()) - interval '1m') and
-    // reconcile_status < 1 ;
-    rec_ignore_status = config.RECONCILER.RECONCILER_IGNORE_STATUS
-    rec_start_elapse = config.RECONCILER.RECONCILER_START_ELAPSE_TIME
-    rec_diff_period = config.RECONCILER.RECONCILER_DIFF_PERIOD  //Need to be equal to or greater than scheduler time
-    rec_interval_type = config.RECONCILER.RECONCILER_DURATION_TYPE
-    rec_retry_count = config.RECONCILER.RECONCILER_RETRY_COUNT
-
-    sql1 = `select "SEQ_ID", "PRODUCER_PAYLOAD" from audit_log where "OVERALL_STATUS" not in ($1)`
-    sql2 = ` and "REQUEST_CREATE_TIME" between (timezone('utc',now()) - interval '1${rec_interval_type}' * $2)`
-    sql3 = ` and  (timezone('utc',now()) - interval '1${rec_interval_type}' * $3)`
-    sql4 = ` and "RECONCILE_STATUS" < $4 ;`
-    sqltofetchfailure = sql1 + sql2 + sql3 + sql4
-    var sqltofetchfailure_values = [rec_ignore_status, rec_diff_period, rec_start_elapse, rec_retry_count]
-    //var sqltofetchfailure_values = [rec_ignore_status, rec_diff_period, rec_start_elapse, rec_retry_count]
-    logger.info('sql : ', sqltofetchfailure)
-    await pgClient.query(sqltofetchfailure, sqltofetchfailure_values, async (err, res) => {
-        if (err) {
-            var errmsg0 = `error-sync: Audit reconsiler query  "${err.message}"`
-            logger.debug(errmsg0)
-            // await callposttoslack(errmsg0)
-        } else {
-            logger.info("Reposting Data---------------------\n");
-            const data = res.rows;
-            data.forEach(async (row) => {
-                logger.info("\npost the topic for : " + row['SEQ_ID']);
-                await posttopic(row['PRODUCER_PAYLOAD'], 1)
-            });
-        }
-        pgClient.end();
+    return new Promise(async function (resolve, reject) {
+        logger.info("Vaildating audit log on PG");
+        await auditlogoperation.fetch_status_failure_seqid(pgclient)
+            .then(async function (failureseqdata) {
+                //console.log(failureseqdata)
+                const fstatus_data = failureseqdata.rows;
+                if (fstatus_data === undefined || fstatus_data.length == 0) {
+                    logger.info("No Failure sequeceid identified in auditlog")
+                    resolve(true);
+                } else {
+                    await Promise.all(fstatus_data.map(async (row) => {
+                        logger.info("Reposting the sequence id : " + row['SEQ_ID']);
+                        await posttopic(row['PRODUCER_PAYLOAD'], 1)
+                        resolve(true)
+                    }));
+                    resolve(true)
+                }
+            })
+            .catch(function (err) {
+                logger.logFullError(err);
+                reject(err)
+            })
     });
-    return
-
 }
-
 async function postpayload_to_restapi(payload) {
-    let options = {
-        method: 'POST',
-        url: config.RECONCILER.RECONCILER_POST_URL,
-        headers: {
-            'cache-control': 'no-cache',
-            'Content-Type': 'application/json'
-        },
-        body: payload,
-        json: true
-    };
-
-    request(options, function (error, response, body) {
-        if (error) {
-            var errmsg0 = `error-sync: Audit Reconsiler1 query  "${error.message}"`
-            logger.debug (errmsg0)
-            throw new Error(error);
-            
-        }
-        else
-        {
-            logger.info("ReconcilerIFXtoPG :  " + payload['TIME'] + "_" + payload['TABLENAME'] + " Success")
-            logger.debug(body);
-        }
+    return new Promise(async function (resolve, reject) {
+        let options = {
+            method: 'POST',
+            url: config.RECONCILER.RECONCILER_POST_URL,
+            headers: {
+                'cache-control': 'no-cache',
+                'Content-Type': 'application/json'
+            },
+            body: payload,
+            json: true
+        };
+        request(options, function (error, response, body) {
+            if (error) {
+                var errmsg0 = `error-sync: Audit Reconsiler1 query  "${error.message}"`
+                logger.debug(errmsg0)
+                reject(error)
+                //throw new Error(error);
+            } else {
+                logger.info("ReconcilerIFXtoPG :  " + payload['TIME'] + "_" + payload['TABLENAME'] + " Success")
+                logger.debug(body);
+                resolve(true)
+            }
+        });
     });
-    return
 }
 
 async function posttopic(payload, integratereconcileflag) {
-    logger.debug(payload + " " + integratereconcileflag);
-    if (integratereconcileflag == 1) {
-        //update payload with reconcile status
-        //post to rest api
-        let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
-        reconcile_flag = reconcile_flag + 1
-        payload.RECONCILE_STATUS = reconcile_flag
-        await postpayload_to_restapi(payload)
-    } else {
-        //post to rest api
-        await postpayload_to_restapi(payload)
-    }
-    return
+    return new Promise(async function (resolve, reject) {
+        try {
+            logger.debug(payload + " " + integratereconcileflag);
+            if (integratereconcileflag == 1) {
+                //update payload with reconcile status and post to rest api
+                logger.info("Integrated the Reconciler flag");
+                let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
+                reconcile_flag = reconcile_flag + 1
+                payload.RECONCILE_STATUS = reconcile_flag
+                logger.debug(payload)
+                await postpayload_to_restapi(payload)
+                resolve(true)
+            } else {
+                //post to rest api
+                logger.info("Skipping the Reconciler flag");
+                logger.debug(payload)
+                await postpayload_to_restapi(payload)
+                resolve(true)
+            }
+        } catch (errmsg) {
+            reject(errmsg)
+        }
+    });
 }
 async function main() {
-    //await setupPgClient()
-    await dynamo_pg_validation()
-    //await pgClient.on('end')
-    await repostfailure()
-
+    return new Promise(async function (resolve, reject) {
+        try {
+            if (config.RECONCILER.RECONCILE_DYNAMODB == 'true') {
+                await dynamo_pg_validation()
+            }
+            if (config.RECONCILER.RECONCILE_PGSTATUS == 'true') {
+                await repostfailure()
+            }
+            resolve(true);
+        } catch (e) {
+            reject(e);
+        }
+    });
 }
+
+const app = express();
+const port = process.env.PORT || 8080;
+SchedulerTime = config.RECONCILER.RECONCILE_TIMESCHEDULE
+setup_globalobject();
+cron.schedule(SchedulerTime, function () {
+    logger.info("Running task as per schedule");
+    main()
+});
+app.get('/', function (req, res) {
+    res.send('hello world')
+})
+app.listen(port);
+logger.info('Server started! At http://localhost:' + port);
+
+/*
+setup_globalobject();
 main()
+*/

@@ -29,11 +29,9 @@ producer.init().then(function () {
   logger.logFullError(e)
 });
 
-const {
-  createPool,
-} = require('./common/postgresWrapper');
+const pgwrapper = require('./common/postgresWrapper');
 database = config.get('POSTGRES.database');
-const pool = createPool(database);
+const pool = pgwrapper.createPool(database);
 pool.on('remove', client => {
   logger.debug("setting property to on query completion");
 })
@@ -104,22 +102,22 @@ async function dataHandler(messageSet, topic, partition) {
       await app_log.consumerpg_failure_log(payload, postgreErr)
       let msgValue = {
         ...postgreErr,
+        SEQ_ID: payload.SEQ_ID,
         recipients: config.topic_error.EMAIL,
         payloadposted: JSON.stringify(payload),
-        msgoriginator: "consumer-producer"
+        msgoriginator: "consumer-producer",
+        msginfo: "postgres insert/update failed"
       }
       let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
       if (reconcile_flag != 0) {
+        msgValue.msginfo = `Reconcile failed. Error code : ${msgValue.code}`
         logger.debug('Reconcile failed, sending it to error queue: ', config.topic_error.NAME);
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
           logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
-          if (config.SLACK.SLACKNOTIFY === 'true') {
-            await slack.postMessage("consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors", async (response) => {
-              await slack.validateMsgPosted(response.statusCode, response.statusMessage)
-            });
-          }
+          notify_msg = "consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors"
+          await slack.send_msg_to_slack(notify_msg);
         }
         return consumer.commitOffset({
           topic: topic,
@@ -134,15 +132,13 @@ async function dataHandler(messageSet, topic, partition) {
       }
       if (payload.retryCount >= config.KAFKA_REPOST_COUNT) {
         logger.debug('Reached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
+        msgValue.msginfo = `Max Retry Reached. Error code : ${msgValue.code}`
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
           logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
-          if (config.SLACK.SLACKNOTIFY === 'true') {
-            await slack.postMessage("Consumer Retry reached Max- But unable to post kafka due to errors", async (response) => {
-              await slack.validateMsgPosted(response.statusCode, response.statusMessage)
-            });
-          }
+          notify_msg = "Consumer Retry reached Max- But unable to post kafka due to errors"
+          await slack.send_msg_to_slack(notify_msg);
         }
       } else {
         //moved to consumerretry function

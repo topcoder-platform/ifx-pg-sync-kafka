@@ -4,19 +4,21 @@ const config = require('config');
 const slack = require('./api/postslackinfo')
 const logger = require('./common/logger');
 const consumer = new Kafka.GroupConsumer();
-
 const dataHandler = function (messageSet, topic, partition) {
     return Promise.each(messageSet, async function (m) {
-      const payload = JSON.parse(m.message.value)
-      if(config.SLACK.SLACKNOTIFY === 'true') {
-        logger.debug(payload)
-        await slack.postMessage(Object.values(payload), async (response) => {
-            await slack.validateMsgPosted(response.statusCode, response.statusMessage)
-        });
-        }
-     
-      // commit offset
-     consumer.commitOffset({ topic: topic, partition: partition, offset: m.offset, metadata: 'optional' })
+        const payload = JSON.parse(m.message.value)
+        notify_msg=`MsgOwner : ${payload.msgoriginator}\n
+                          SequenceID : ${payload.SEQ_ID}\n
+                          Message: ${payload.msginfo}`
+              await slack.send_msg_to_slack(notify_msg); 
+        await slack.send_msg_to_slack(Object.values(payload));
+        // commit offset
+        consumer.commitOffset({
+            topic: topic,
+            partition: partition,
+            offset: m.offset,
+            metadata: 'optional'
+        })
     }).catch(err => logger.logFullError(err))
 };
 

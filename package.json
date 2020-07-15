@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "producer": "node src/nodeserver.js",
     "consumer": "node src/consumer.js",
-    "producerwithoutkafka" : "node src/node-server-without-kafka.js",
+    "producerwithoutkafka": "node src/node-server-without-kafka.js",
     "ifxpgnotify": "node src/consumer-slacknotify.js",
     "reconciler": "node src/reconciler.js"    
   },
@@ -37,7 +37,8 @@
     "topcoder-healthcheck-dropin": "^1.0.3",
     "util": "latest",
     "get-parameter-names": "^0.3.0",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "node-cron": "latest"
   },
   "devDependencies": {
     "chai": "^4.2.0",

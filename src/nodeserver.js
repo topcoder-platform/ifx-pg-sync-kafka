@@ -42,18 +42,16 @@ app.post('/kafkaevents', async (req, res, next) => {
     ...kafka_error,
     SEQ_ID: seqID,
     recipients: config.topic_error.EMAIL,
-    msgoriginator: "producer"
+    msgoriginator: "producer",
+    msginfo: "Failed to post message"
   }
   //send error message to kafka
   kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
   if (!kafka_error) {
     logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
   } else {
-    if (config.SLACK.SLACKNOTIFY === 'true') {
-      await slack.postMessage("producer post meesage failed- But usable to post the error in kafka error topic due to errors", async (response) => {
-        await slack.validateMsgPosted(response.statusCode, response.statusMessage)
-      });
-    }
+    notify_msg = "producer post message failed- But usable to post the error in kafka error topic due to errors"
+    await slack.send_msg_to_slack(notify_msg);
   }
   res.send('error')
 })
