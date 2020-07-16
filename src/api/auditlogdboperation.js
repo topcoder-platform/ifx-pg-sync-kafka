@@ -97,7 +97,6 @@ async function fetch_status_failure_seqid(pgclient) {
         var errmsg0 = `error-sync: Audit reconsiler query  "${err.message}"`
         logger.debug(errmsg0)
         reject(err)
-        // await callposttoslack(errmsg0)
       } else {
         logger.info("Sync Failure seqid fetched successfully from Auditlig table");
         resolve(res)

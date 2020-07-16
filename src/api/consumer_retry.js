@@ -31,11 +31,10 @@ async function consumerretry(producer, payload) {
     if (!kafka_error) {
       logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
     } else {
-      if (config.SLACK.SLACKNOTIFY === 'true') {
-        await slack.postMessage("consumer repost failed - But unable to post message in kafka error topic due to errors", async (response) => {
-          await slack.validateMsgPosted(response.statusCode, response.statusMessage)
-        });
-      }
+      notify_msg = `Originator : IFX-PG Consumer \n` +
+        `SequnceId : ${payload.SEQ_ID} \n` +
+        `Status : Consumer-Retry Kafka pulish message failed. Also unable to post the error in kafka error topic due to errors`
+      await slack.send_msg_to_slack(notify_msg);
     }
 
   }

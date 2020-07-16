@@ -105,17 +105,24 @@ async function dataHandler(messageSet, topic, partition) {
         SEQ_ID: payload.SEQ_ID,
         recipients: config.topic_error.EMAIL,
         payloadposted: JSON.stringify(payload),
-        msgoriginator: "consumer-producer",
+        msgoriginator: "IFX-PG Consumer-Producer",
         msginfo: "postgres insert/update failed"
       }
       let reconcile_flag = payload['RECONCILE_STATUS'] ? payload['RECONCILE_STATUS'] : 0
       if (reconcile_flag != 0) {
-        msgValue.msginfo = `Reconcile failed. Error code : ${msgValue.code}`
+        msgValue.msginfo = `Reconcile failed. \n` +
+          `DB Operation: ${payload.OPERATION} \n ` +
+          `Error code : ${msgValue.code}`
         logger.debug('Reconcile failed, sending it to error queue: ', config.topic_error.NAME);
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
           logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
+          notify_msg = `Originator : IFX-PG Consumer \n` +
+          `SequnceId : ${payload.SEQ_ID} \n` +
+          `Status : Reconcile failed. Also unable to post the info in kafka error topic channel due to errors \n` +
+          `DB Operation: ${payload.OPERATION} \n ` +
+          `Error code : ${msgValue.code}`
           notify_msg = "consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors"
           await slack.send_msg_to_slack(notify_msg);
         }
@@ -132,12 +139,18 @@ async function dataHandler(messageSet, topic, partition) {
       }
       if (payload.retryCount >= config.KAFKA_REPOST_COUNT) {
         logger.debug('Reached at max retry counter, sending it to error queue: ', config.topic_error.NAME);
-        msgValue.msginfo = `Max Retry Reached. Error code : ${msgValue.code}`
+        msgValue.msginfo = `Max Retry Reached. \n` +
+          `DB Operation: ${payload.OPERATION} \n ` +
+          `Error code : ${msgValue.code}`        
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
           logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
         } else {
-          notify_msg = "Consumer Retry reached Max- But unable to post kafka due to errors"
+          notify_msg = `Originator : IFX-PG Consumer \n` +
+          `SequnceId : ${payload.SEQ_ID} \n` +
+          `Status : Max Retry Reached. Also unable to post the info in kafka error topic channel due to errors \n` +
+          `DB Operation: ${payload.OPERATION} \n ` +
+          `Error code : ${msgValue.code}`
           await slack.send_msg_to_slack(notify_msg);
         }
       } else {

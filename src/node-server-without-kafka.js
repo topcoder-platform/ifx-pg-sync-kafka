@@ -43,8 +43,8 @@ app.post('/fileevents', async function (req, res) {
         .catch(function (pgresponse) {
           logger.logFullError(pgresponse);
           notify_msg = `Origniator : IFX-PG Secondary producer \n` +
-            `Status : Failed at PG Auditlog update \n` +
-            `SequnceId : ${received_seqID}`
+            `SequnceId : ${received_seqID} \n` +
+            `Status : Failed at PG Auditlog update `
           slack.send_msg_to_slack(notify_msg);
           res.send('ddbdone')
         })
@@ -52,8 +52,8 @@ app.post('/fileevents', async function (req, res) {
     .catch(function (dynamoresponse) {
       logger.logFullError(dynamoresponse);
       notify_msg = `Origniator : IFX-PG Secondary producer \n` +
-        `Status : Failed at Dynamo update \n` +
-        `SequnceId : ${received_seqID}`
+        `SequnceId : ${received_seqID} \n` +
+        `Status : Failed at Dynamo update `
       slack.send_msg_to_slack(notify_msg);
       res.send('failed')
     })
