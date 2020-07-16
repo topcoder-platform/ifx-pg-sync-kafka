@@ -42,7 +42,7 @@ app.post('/kafkaevents', async (req, res, next) => {
     ...kafka_error,
     SEQ_ID: seqID,
     recipients: config.topic_error.EMAIL,
-    msgoriginator: "producer",
+    msgoriginator: "IFX-PG Primary Producer",
     msginfo: "Failed to post message"
   }
   //send error message to kafka
@@ -50,7 +50,9 @@ app.post('/kafkaevents', async (req, res, next) => {
   if (!kafka_error) {
     logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
   } else {
-    notify_msg = "producer post message failed- But usable to post the error in kafka error topic due to errors"
+    notify_msg = `Originator : Primary Producer \n` +
+      `Status : Kafka pulish message failed. Also unable to post the error in kafka error topic due to errors \n` +
+      `SequnceId : ${seqID}`
     await slack.send_msg_to_slack(notify_msg);
   }
   res.send('error')
