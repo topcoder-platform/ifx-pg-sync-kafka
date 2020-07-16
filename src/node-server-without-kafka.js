@@ -24,13 +24,15 @@ app.get('/', function (req, res) {
 
 app.post('/fileevents', async function (req, res) {
   const payload = req.body
-  logger.info({
+  logger.debug({
     topic: config.topic.NAME,
     partition: config.topic.PARTITION,
     message: {
       value: JSON.stringify(payload)
     }
   });
+  let received_seqID = payload.TIME + "_" + payload.TABLENAME
+  logger.info(`Recieved Payload SeqID : ${received_seqID}`);
   await dynamodblib.pushToDynamoDb(payload)
     .then(async function () {
       await auditlogdb.insertddauditlogdb(pgclient, payload)
@@ -40,13 +42,19 @@ app.post('/fileevents', async function (req, res) {
         })
         .catch(function (pgresponse) {
           logger.logFullError(pgresponse);
-          slack.send_msg_to_slack("Secondary producer failed to update in PG auditlog");
+          notify_msg = `Origniator : Secondary producer \n` +
+            `Status : Failed at PG Auditlog update \n` +
+            `SequnceId : ${received_seqID}`
+          slack.send_msg_to_slack(notify_msg);
           res.send('ddbdone')
         })
     })
     .catch(function (dynamoresponse) {
       logger.logFullError(dynamoresponse);
-      slack.send_msg_to_slack("Secondary producer failed to update in DynamoDB");
+      notify_msg = `Origniator : Secondary producer \n` +
+        `Status : Failed at Dynamo update \n` +
+        `SequnceId : ${received_seqID}`
+      slack.send_msg_to_slack(notify_msg);
       res.send('failed')
     })
 })
