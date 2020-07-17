@@ -113,7 +113,7 @@ async function dataHandler(messageSet, topic, partition) {
         msgValue.msginfo = `Reconcile failed. \n` +
           `DB Operation: ${payload.OPERATION} \n ` +
           `Error code : ${msgValue.code} \n` +
-          `Error Detail : ${msgValue.detail}`
+          `Error Detail : ${msgValue.error}`
         logger.debug('Reconcile failed, sending it to error queue: ', config.topic_error.NAME);
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
@@ -124,7 +124,7 @@ async function dataHandler(messageSet, topic, partition) {
           `Status : Reconcile failed. Also unable to post the info in kafka error topic channel due to errors \n` +
           `DB Operation: ${payload.OPERATION} \n ` +
           `Error code : ${msgValue.code} \n` +
-          `Error Detail : ${msgValue.detail}`
+          `Error Detail : ${msgValue.error}`
           notify_msg = "consumer_reconcile post fails - unable to post the error in kafka failure topic due to some errors"
           await slack.send_msg_to_slack(notify_msg);
         }
@@ -144,7 +144,7 @@ async function dataHandler(messageSet, topic, partition) {
         msgValue.msginfo = `Max Retry Reached. \n` +
           `DB Operation: ${payload.OPERATION} \n ` +
           `Error code : ${msgValue.code} \n` +
-          `Error Detail : ${msgValue.detail}`       
+          `Error Detail : ${msgValue.error}`       
         kafka_error = await pushToKafka(producer, config.topic_error.NAME, msgValue)
         if (!kafka_error) {
           logger.info("Kafka Message posted successfully to the topic : " + config.topic_error.NAME)
@@ -154,7 +154,7 @@ async function dataHandler(messageSet, topic, partition) {
           `Status : Max Retry Reached. Also unable to post the info in kafka error topic channel due to errors \n` +
           `DB Operation: ${payload.OPERATION} \n ` +
           `Error code : ${msgValue.code} \n` +
-          `Error Detail : ${msgValue.detail}`
+          `Error Detail : ${msgValue.error}`
           await slack.send_msg_to_slack(notify_msg);
         }
       } else {
