@@ -11,7 +11,7 @@ const dataHandler = function (messageSet, topic, partition) {
             `SequenceID : ${payload.SEQ_ID} \n` +
             `Status: ${payload.msginfo}`
         await slack.send_msg_to_slack(notify_msg);
-        await slack.send_msg_to_slack(Object.values(payload));
+        //await slack.send_msg_to_slack(Object.values(payload));
         // commit offset
         consumer.commitOffset({
             topic: topic,
