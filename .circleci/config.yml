@@ -38,9 +38,9 @@ builddeploy_steps: &builddeploy_steps
             source awsenvconf
             # # producer deployment
             # ./unsetenv.sh
-            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-producer-deployvar
-            source buildenvvar
-            ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
+            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-producer-deployvar
+            # source buildenvvar
+            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
             # # notify deployment
             # rm -rf buildenvvar
             # ./unsetenv.sh            
@@ -62,9 +62,9 @@ builddeploy_steps: &builddeploy_steps
             # # reconciler deployment
             # rm -rf buildenvvar
             # ./unsetenv.sh            
-            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-reconciler-deployvar
-            # source buildenvvar
-            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-${APPNAME}-appvar,${LOGICAL_ENV}-${APPNAME}-withoutkafka-appvar -i ${APPNAME}
+            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-reconciler-deployvar
+            source buildenvvar
+            ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-${APPNAME}-appvar,${LOGICAL_ENV}-${APPNAME}-withoutkafka-appvar -i ${APPNAME}
 
 
 jobs:
