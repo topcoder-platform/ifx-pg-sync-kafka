@@ -52,7 +52,16 @@ async function validateMsgPosted(responsecode, responsemsg) {
     }
 }
 
+async function send_msg_to_slack(msg) {
+    if (config.SLACK.SLACKNOTIFY === 'true') {
+        await postMessage(msg, async (response) => {
+            await validateMsgPosted(response.statusCode, response.statusMessage)
+        })
+    }
+}
+
 module.exports = {
     postMessage,
-    validateMsgPosted
+    validateMsgPosted,
+    send_msg_to_slack
 }
