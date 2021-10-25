@@ -33,7 +33,7 @@
     "zlib": "latest",
     "url": "latest",
     "https": "latest",
-    "nodemon": "latest",
+    "nodemon": "2.0.13",
     "topcoder-healthcheck-dropin": "^1.0.3",
     "util": "latest",
     "get-parameter-names": "^0.3.0",
