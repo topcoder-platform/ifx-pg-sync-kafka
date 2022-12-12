@@ -16,7 +16,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "config": "^3.2.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-async-errors": "^3.1.1",
     "joi": "^12.0.0",
     "no-kafka": "^3.4.3",
