@@ -54,17 +54,17 @@ builddeploy_steps: &builddeploy_steps
             # source buildenvvar            
             # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
             # # without kafka dynamodb
-            # rm -rf buildenvvar
-            # ./unsetenv.sh
-            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-withoutkafka-deployvar
-            # source buildenvvar            
-            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-${APPNAME}-appvar,${LOGICAL_ENV}-${APPNAME}-withoutkafka-appvar -i ${APPNAME}
-            # # reconciler deployment
             rm -rf buildenvvar
-            ./unsetenv.sh            
-            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-reconciler-deployvar
-            source buildenvvar
+            ./unsetenv.sh
+            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-withoutkafka-deployvar
+            source buildenvvar            
             ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-${APPNAME}-appvar,${LOGICAL_ENV}-${APPNAME}-withoutkafka-appvar -i ${APPNAME}
+            # # reconciler deployment
+            # rm -rf buildenvvar
+            # ./unsetenv.sh            
+            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-reconciler-deployvar
+            # source buildenvvar
+            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-${APPNAME}-appvar,${LOGICAL_ENV}-${APPNAME}-withoutkafka-appvar -i ${APPNAME}
 
 
 jobs:
