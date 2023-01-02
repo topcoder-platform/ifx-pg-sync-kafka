@@ -37,10 +37,10 @@ builddeploy_steps: &builddeploy_steps
             ./awsconfiguration.sh $DEPLOY_ENV
             source awsenvconf
             # # producer deployment
-            ./unsetenv.sh
-            ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-producer-deployvar
-            source buildenvvar
-            ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
+            # ./unsetenv.sh
+            # ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-producer-deployvar
+            # source buildenvvar
+            # ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -s ${LOGICAL_ENV}-global-appvar,${LOGICAL_ENV}-${APPNAME}-appvar -i ${APPNAME}
             # # notify deployment
             rm -rf buildenvvar
             ./unsetenv.sh            
