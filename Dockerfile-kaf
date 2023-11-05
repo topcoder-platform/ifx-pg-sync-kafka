@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 RUN apt update
 RUN apt install openjdk-8-jdk net-tools vim wget -y
 WORKDIR /opt
