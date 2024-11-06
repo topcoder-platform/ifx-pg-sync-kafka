@@ -6,8 +6,9 @@ install_dependency: &install_dependency
   name: Installation of build and deployment dependencies.
   command: |
     sudo apt update
-    sudo apt install jq python3-pip
-    sudo pip3 install awscli --upgrade 
+    sudo apt install -y jq python3-pip
+    sudo pip3 install awscli --upgrade
+   
 install_deploysuite: &install_deploysuite
   name: Installation of install_deploysuite.
   command: |
